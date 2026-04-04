@@ -14,7 +14,7 @@ export const getUsersController = asyncHandler(async (req, res) => {
   | order(_createdAt desc)
   [$start...$end]{
     _id,
-    fullName,
+    userName,
     email,
     phoneNumber,
     accountStatus,
@@ -57,7 +57,7 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
     const user = await client.fetch(
   `*[_type == "user" && role == "user" && _id == $id && (!defined(isDeleted) || isDeleted == false)][0]{
     _id,
-    fullName,
+    userName,
     email,
     phoneNumber,
     accountStatus,
@@ -173,7 +173,7 @@ export const deleteUserController = asyncHandler(async (req, res) => {
       .commit();
 
     return sendResponse(res, true, "User deleted successfully", 200, {
-      fullName: updatedUser.fullName,
+      userName: updatedUser.userName,
       email: updatedUser.email,
       isDeleted: updatedUser.isDeleted,
     });

@@ -21,7 +21,7 @@ export const getCryptoInvestmentsController = asyncHandler(async (req, res) => {
       planType,
       user->{
         _id,
-        fullName,
+        userName,
         email,
         phoneNumber,
         accountStatus,
@@ -86,7 +86,7 @@ export const getSingleCryptoInvestmentController = async (req, res) => {
         updatedAt,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,

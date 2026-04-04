@@ -11,7 +11,7 @@ export const getKycController = asyncHandler(async (req, res) => {
     | order(_createdAt desc)
     [$start...$end]{
       _id,
-      fullName,
+      userName,
       email,
       address,
       maritalStatus,
@@ -24,7 +24,7 @@ export const getKycController = asyncHandler(async (req, res) => {
       _updatedAt,
       "user": user->{
         _id,
-        fullName,
+        userName,
         email,
         phoneNumber,
         role,
@@ -61,7 +61,7 @@ export const getKycByIdController = asyncHandler(async (req, res) => {
     const kyc = await client.fetch(
       `*[_type == "kyc" && _id == $id][0]{
         _id,
-        fullName,
+        userName,
         email,
         address,
         maritalStatus,
@@ -75,7 +75,7 @@ export const getKycByIdController = asyncHandler(async (req, res) => {
         _updatedAt,
         "user": user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           role,

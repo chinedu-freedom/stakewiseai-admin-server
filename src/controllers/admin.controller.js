@@ -62,7 +62,7 @@ export const changePasswordController = async (req, res) => {
 
     await sendPasswordChangeConfirmationEmail(
       dbUser.email,
-      dbUser.fullName?.split(" ")[0] || "Admin"
+      dbUser.userName?.split(" ")[0] || "Admin"
     );
 
     return sendResponse(res, true, "Password updated successfully", 200);
@@ -151,7 +151,7 @@ export const updateUserProfileController = asyncHandler(async (req, res) => {
 
   const safeData = {
     email: updatedUser.email,
-    fullName: updatedUser.fullName,
+    userName: updatedUser.userName,
     dateOfBirth: updatedUser.dateOfBirth,
     postalCode: updatedUser.postalCode,
     city: updatedUser.city,
@@ -171,7 +171,7 @@ export const getUserProfileController = asyncHandler(async (req, res) => {
 
   const query = `*[_type == "user" && role == "admin" && _id == $id][0]{
     email,
-    fullName,
+    userName,
     dateOfBirth,
     postalCode,
     city,
@@ -229,7 +229,7 @@ export const getDashboardStatsController = async (req, res) => {
       timestamp,
       "user": user->{
         _id,
-        fullName,
+        userName,
         email
       }
     }`;

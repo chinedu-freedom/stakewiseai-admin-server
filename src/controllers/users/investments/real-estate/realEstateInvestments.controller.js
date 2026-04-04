@@ -27,7 +27,7 @@ export const getRealEstateInvestmentsController = async (req, res) => {
         planType,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,
@@ -101,7 +101,7 @@ export const getSingleRealEstateInvestmentController = async (req, res) => {
         planType,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,

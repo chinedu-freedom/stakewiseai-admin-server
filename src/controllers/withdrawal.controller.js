@@ -21,7 +21,7 @@ export const getWithdrawalsController = asyncHandler(async (req, res) => {
       status,
       "user": {
         "_id": user->_id,
-        "fullName": user->fullName
+        "userName": user->userName
       }
     }
   `;
@@ -52,7 +52,7 @@ export const getWithdrawalController = asyncHandler(async (req, res) => {
   const withdrawal = await client.fetch(
     `*[_type == "withdrawal" && _id == $id][0]{
       _id, amount, crypto, status, requestedAt, _updatedAt, walletAddress, user->{
-        _id, fullName, accountBalance, email, phoneNumber, accountStatus, totalProfit, _createdAt, _updatedAt
+        _id, userName, accountBalance, email, phoneNumber, accountStatus, totalProfit, _createdAt, _updatedAt
       }
     }`,
     { id }
@@ -95,7 +95,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       emailRejectedSent,
       user->{
         _id,
-        fullName,
+        userName,
         email,
         accountBalance
       }
@@ -131,7 +131,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   if (status === "successful" && !withdrawal.emailSuccessSent) {
     await sendWithdrawalSuccessEmail({
       email: withdrawal.user.email,
-      name: withdrawal.user.fullName.split(" ")[0],
+      name: withdrawal.user.userName.split(" ")[0],
       crypto: withdrawal.crypto,
       amount: withdrawal.amount,
       walletAddress: withdrawal.walletAddress,
@@ -144,7 +144,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   if (status === "failed" && !withdrawal.emailRejectedSent) {
     await sendWithdrawalRejectedEmail({
       email: withdrawal.user.email,
-      name: withdrawal.user.fullName.split(" ")[0],
+      name: withdrawal.user.userName.split(" ")[0],
       crypto: withdrawal.crypto,
       amount: withdrawal.amount,
       walletAddress: withdrawal.walletAddress,

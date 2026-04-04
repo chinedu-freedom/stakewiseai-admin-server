@@ -25,7 +25,7 @@ export const getLoanInvestmentsController = asyncHandler(async (req, res) => {
       planType,
       user->{
         _id,
-        fullName,
+        userName,
         email,
         phoneNumber,
         accountStatus,
@@ -149,7 +149,7 @@ export const getSingleLoanInvestmentController = async (req, res) => {
         planType,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,

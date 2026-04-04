@@ -7,15 +7,12 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendResponse } from "../lib/response.js";
 import { hashOtp, comparePasswords, hashPassword, generateToken, verifyOtp } from "../lib/auth.js";
-import { OAuth2Client } from "google-auth-library";
 
-const clientId = process.env.GOOGLE_CLIENT_ID;
-const googleClient = new OAuth2Client(clientId);
 
 
 export const register = async (req, res) => {
   try {
-    const { adminSecret, fullName, email, phoneNumber, password } = req.body;
+    const { adminSecret, userName, email, phoneNumber, password } = req.body;
 
     if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET_CODE) {
       return sendResponse(
@@ -26,11 +23,11 @@ export const register = async (req, res) => {
       );
     }
 
-    if (!fullName) {
+    if (!userName) {
       return sendResponse(
         res,
         false,
-        "Full name is required",
+        "username is required",
         400
       );
     }
@@ -121,7 +118,7 @@ export const register = async (req, res) => {
 
     const newAdmin = await client.create({
       _type: "user",
-      fullName: fullName.trim(),
+      userName: userName.trim(),
       email: emailNormalized,
       phoneNumber: normalizedPhone,
       password: hashedPassword,
@@ -130,7 +127,6 @@ export const register = async (req, res) => {
       verificationToken: hashedVerificationToken,
       tokenDigest,
       role: "admin",
-      authProvider: "email",
       tokenExpiresAt: addMinutes(new Date(), 15).toISOString(),
       _createdAt: new Date().toISOString(),
       _updatedAt: new Date().toISOString(),
@@ -139,7 +135,7 @@ export const register = async (req, res) => {
     try {
       await sendVerificationEmail({
         email: newAdmin.email,
-        name: newAdmin.fullName.split(" ")[0],
+        name: newAdmin.userName.split(" ")[0],
         token: verificationToken,
       });
     } catch (emailErr) {
@@ -159,7 +155,7 @@ export const register = async (req, res) => {
       201,
       {
         userId: newAdmin._id,
-        fullName: newAdmin.fullName,
+        userName: newAdmin.userName,
         email: newAdmin.email,
         accountStatus: newAdmin.accountStatus,
         role: newAdmin.role,
@@ -219,7 +215,7 @@ export const verifyEmail = async (req, res) => {
 
     return sendResponse(res, true, "Email verified successfully", 200, {
       userId: admin._id,
-      fullName: admin.fullName,
+      userName: admin.userName,
       email: admin.email,
       role: admin.role,
     });
@@ -268,7 +264,7 @@ export const resendVerification = async (req, res) => {
 
     await sendVerificationEmail({
       email: user.email,
-      name: user.fullName?.split(" ")[0] || "Admin",
+      name: user.userName?.split(" ")[0] || "Admin",
       token: newToken,
     });
 
@@ -312,14 +308,13 @@ export const login = async (req, res) => {
     const user = await client.fetch(
       `*[_type == "user" && email == $email][0]{
         _id,
-        fullName,
+        userName,
         email,
         accountStatus,
         emailVerified,
         password,
         role,
         tokenExpiresAt,
-        authProvider
       }`,
       { email: emailNormalized }
     );
@@ -377,15 +372,6 @@ export const login = async (req, res) => {
       expiresIn: keepMeLoggedIn ? "24h" : "1h",
     });
 
-    // res.cookie("token", accessToken, {
-    //   httpOnly: true,
-    //   secure: false,
-    //   sameSite: "lax",
-    //   path: "/",
-    //   maxAge: keepMeLoggedIn ? 60 * 60 * 24 * 1000 : 60 * 60 * 1000,
-    //   priority: "high",
-    // });
-
 
     res.cookie("token", accessToken, {
   httpOnly: true,
@@ -400,11 +386,10 @@ export const login = async (req, res) => {
 
     return sendResponse(res, true, "Admin login successful", 200, {
       userId: user._id,
-      fullName: user.fullName,
+      userName: user.userName,
       email: user.email,
       role: user.role,
       accountStatus: user.accountStatus,
-      authProvider: user.authProvider,
     });
   } catch (error) {
     console.error("Admin login error:", error);
@@ -490,7 +475,7 @@ export const forgotPassword = async (req, res) => {
     try {
       await sendPasswordResetEmail(
         user.email,
-        user.fullName?.split(" ")[0] || "dear",
+        user.userName?.split(" ")[0] || "dear",
         otp
       );
 
@@ -608,7 +593,7 @@ export const resetPassword = async (req, res) => {
 
     await sendPasswordResetConfirmationEmail(
       user.email,
-      user.fullName?.split(" ")[0] || "Admin"
+      user.userName?.split(" ")[0] || "Admin"
     );
 
     return sendResponse(res, true, "Password reset successful.", 200);
@@ -620,69 +605,5 @@ export const resetPassword = async (req, res) => {
       "An unexpected server error occurred. Please try again later.",
       500
     );
-  }
-};
-
-export const googleLogin = async (req, res) => {
-  try {
-    const { idToken } = req.body;
-
-    if (!idToken) {
-      return sendResponse(res, false, "Google ID token is required", 400);
-    }
-
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: clientId,
-    });
-
-    const payload = ticket.getPayload();
-    if (!payload?.email) {
-      return sendResponse(res, false, "Invalid Google token payload", 400);
-    }
-
-    const { email, name } = payload;
-
-    let user = await client.fetch(
-      `*[_type=="user" && role=="admin" && email==$email][0]`,
-      { email }
-    );
-
-    if (!user) {
-      user = await client.create({
-        _type: "user",
-        role: "admin",
-        email,
-        fullName: name,
-        emailVerified: true,
-        authProvider: "google",
-        accountStatus: "incomplete",
-        _createdAt: new Date().toISOString(),
-      });
-    }
-
-    const accessToken = generateToken(user._id, user.role, { expiresIn: "1h" });
-
-    // Set cookie
-    res.cookie("token", accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-    });
-
-    return sendResponse(res, true, "Google sign-in successful", 200, {
-      userId: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      accountStatus: user.accountStatus,
-      authProvider: user.authProvider,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-    });
-  } catch (error) {
-    console.error("Google sign-in error:", error);
-    return sendResponse(res, false, "Authentication failed", 400);
   }
 };

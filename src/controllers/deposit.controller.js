@@ -22,7 +22,7 @@ export const getDepositsController = asyncHandler(async (req, res) => {
       "proofOfPayment": proofOfPayment.asset->url,
       "user": {
         "_id": user->_id,
-        "fullName": user->fullName,
+        "userName": user->userName,
         "email": user->email
       }
     }
@@ -57,7 +57,7 @@ export const getDepositByIdController = asyncHandler(async (req, res) => {
       "proofOfPayment": proofOfPayment.asset->url,
       "user": user->{
         _id,
-        fullName,
+        userName,
         email,
         phoneNumber,
         accountStatus,
@@ -95,7 +95,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
       emailRejectedSent,
       user->{
         _id,
-        fullName,
+        userName,
         email,
         accountBalance
       }
@@ -124,7 +124,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
   if (status === "successful" && !deposit.emailSuccessSent && deposit.user?.email) {
     await sendDepositSuccessEmail({
       email: deposit.user.email,
-      name: deposit.user.fullName.split(" ")[0],
+      name: deposit.user.userName.split(" ")[0],
       amount: deposit.amount,
       date: new Date(),
     });
@@ -134,7 +134,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
   if (status === "failed" && !deposit.emailRejectedSent && deposit.user?.email) {
     await sendDepositRejectedEmail({
       email: deposit.user.email,
-      name: deposit.user.fullName.split(" ")[0],
+      name: deposit.user.userName.split(" ")[0],
       amount: deposit.amount,
       reason: "Deposit verification failed",
       date: new Date(),

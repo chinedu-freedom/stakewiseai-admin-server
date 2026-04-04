@@ -26,7 +26,7 @@ export const getStockBondInvestmentsController = async (req, res) => {
         planType,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,
@@ -98,7 +98,7 @@ export const getSingleStockBondInvestmentController = async (req, res) => {
         planType,
         user->{
           _id,
-          fullName,
+          userName,
           email,
           phoneNumber,
           accountStatus,
