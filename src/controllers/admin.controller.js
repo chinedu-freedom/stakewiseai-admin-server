@@ -155,6 +155,7 @@ export const updateUserProfileController = asyncHandler(async (req, res) => {
     postalCode: updatedUser.postalCode,
     city: updatedUser.city,
     image: updatedUser.image,
+    role: updatedUser.role,
   };
 
   return sendResponse(res, true, "Profile updated successfully", 200, safeData);
@@ -174,6 +175,7 @@ export const getUserProfileController = asyncHandler(async (req, res) => {
     dateOfBirth,
     postalCode,
     city,
+    role,
     image
   }`;
 
