@@ -232,7 +232,7 @@ export const login = async (req, res) => {
 
     res.cookie("token", accessToken, {
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: "none",
   path: "/",
   maxAge: keepMeLoggedIn
@@ -275,8 +275,8 @@ export const logout = async (req, res) => {
   try {
     res.cookie("token", "", {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       path: "/",
       expires: new Date(0),
     });
