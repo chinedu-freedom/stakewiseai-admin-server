@@ -1,7 +1,7 @@
 import express from "express";
 import { changePasswordController, updateUserProfileController, getUserProfileController, getDashboardStatsController } from "../controllers/admin.controller.js";
 import { upload } from "../middlewares/upload.js";
-import { withAdminAuth } from "../middlewares/auth/authGuard.js";
+import { withAdminAuth } from "../middlewares/authGuard.js";
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
-import { client } from "../../lib/sanity.js";
+import { client } from "../lib/sanity.js";
 import slugify from "slugify";
-import { asyncHandler } from "../../lib/asyncHandler.js";
-import { sendResponse } from "../../lib/response.js";
-import { getPaginationParams, buildPaginationMeta } from "../../lib/pagination.js";
-import { uploadImage } from "../../lib/uploadImage.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
+import { sendResponse } from "../lib/response.js";
+import { getPaginationParams, buildPaginationMeta } from "../lib/pagination.js";
+import { uploadImage } from "../lib/uploadImage.js";
 
 const typeMap = {
   "Crypto": "crypto",

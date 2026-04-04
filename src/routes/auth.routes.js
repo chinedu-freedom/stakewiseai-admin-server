@@ -8,7 +8,6 @@ import {
   resetPassword,
   verifyEmail,
   resendVerification,
-  googleLogin
 } from "../controllers/auth.controller.js";
 
 const router = express.Router();
@@ -21,6 +20,5 @@ router.post("/request-otp", forgotPassword);
 router.post("/verify-otp", verifyAdminOtp);
 router.post("/reset-password", resetPassword);
 router.post("/resend-verification", resendVerification);
-router.post("/google", googleLogin);
 
 export default router;

@@ -5,7 +5,7 @@ import {
   updateWithdrawalStatusController,
   deleteWithdrawalController
 } from "../controllers/withdrawal.controller.js";
-import { withAdminAuth } from "../middlewares/auth/authGuard.js";
+import { withAdminAuth } from "../middlewares/authGuard.js";
 
 const router = express.Router();
 

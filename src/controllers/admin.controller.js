@@ -5,7 +5,6 @@ import { uploadImage } from "../lib/uploadImage.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { client } from "../lib/sanity.js";
 import { getPaginationParams, buildPaginationMeta } from "../lib/pagination.js";
-import { getFileData } from "../middlewares/upload.js";
 
 export const changePasswordController = async (req, res) => {
   try {

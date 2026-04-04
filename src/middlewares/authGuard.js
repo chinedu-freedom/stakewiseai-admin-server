@@ -1,5 +1,5 @@
-import { verifyToken } from "../../lib/auth.js";
-import { sendResponse } from "../../lib/response.js";
+import { verifyToken } from "../lib/auth.js";
+import { sendResponse } from "../lib/response.js";
 
 export const withAdminAuth = async (req, res, next) => {
   try {
