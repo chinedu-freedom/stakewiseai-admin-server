@@ -1,12 +1,7 @@
 import { client } from "../lib/sanity.js";
-import { randomBytes } from "crypto";
-import { addMinutes } from "date-fns";
-import { sendVerificationEmail, sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from "../lib/mailer.js";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
 import { sendResponse } from "../lib/response.js";
-import { hashOtp, comparePasswords, hashPassword, generateToken, verifyOtp } from "../lib/auth.js";
+import { comparePasswords, hashPassword, generateToken } from "../lib/auth.js";
 
 
 
@@ -24,12 +19,7 @@ export const register = async (req, res) => {
     }
 
     if (!username) {
-      return sendResponse(
-        res,
-        false,
-        "username is required",
-        400
-      );
+      return sendResponse(res, false, "username is required", 400);
     }
 
     if (!email || !email.trim()) {
@@ -104,54 +94,24 @@ export const register = async (req, res) => {
 
     const hashedPassword = await hashPassword(password);
 
-    const verificationToken = randomBytes(32).toString("hex");
-
-    const hashedVerificationToken = await bcrypt.hash(
-      verificationToken,
-      Number(process.env.SALT_ROUNDS)
-    );
-
-    const tokenDigest = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-
+    // Create user directly as active
     const newAdmin = await client.create({
       _type: "user",
       username: username.trim(),
       email: emailNormalized,
       phoneNumber: normalizedPhone,
       password: hashedPassword,
-      emailVerified: false,
-      accountStatus: "pending",
-      verificationToken: hashedVerificationToken,
-      tokenDigest,
+      emailVerified: true,              
+      accountStatus: "active",          
       role: "admin",
-      tokenExpiresAt: addMinutes(new Date(), 15).toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
-    try {
-      await sendVerificationEmail({
-        email: newAdmin.email,
-        name: newAdmin.username.split(" ")[0],
-        token: verificationToken,
-      });
-    } catch (emailErr) {
-      console.error("Failed to send verification email", emailErr);
-      return sendResponse(
-        res,
-        false,
-        "Could not send verification email",
-        500
-      );
-    }
-
     return sendResponse(
       res,
       true,
-      "Verification email sent. Please check your inbox.",
+      "Account created successfully",
       201,
       {
         userId: newAdmin._id,
@@ -169,109 +129,6 @@ export const register = async (req, res) => {
       "Something went wrong while processing your request",
       500
     );
-  }
-};
-
-export const verifyEmail = async (req, res) => {
-  try {
-    const tokenFromQuery = req.query?.token?.trim();
-
-    if (!tokenFromQuery) {
-      return sendResponse(res, false, "Verification token is required", 400);
-    }
-
-    const digestFromQuery = crypto
-      .createHash("sha256")
-      .update(tokenFromQuery)
-      .digest("hex");
-
-    const query = `*[_type == "user" && role == "admin" && tokenDigest == $digest && !emailVerified][0]`;
-    const admin = await client.fetch(query, { digest: digestFromQuery });
-
-    if (!admin) {
-      return sendResponse(res, false, "Invalid or expired verification token", 400);
-    }
-
-    const isValidToken = await bcrypt.compare(tokenFromQuery, admin.verificationToken);
-    if (!isValidToken) {
-      return sendResponse(res, false, "Invalid or expired verification token", 400);
-    }
-
-    if (admin.tokenExpiresAt && new Date() > new Date(admin.tokenExpiresAt)) {
-      return sendResponse(res, false, "Verification token has expired", 400);
-    }
-
-    await client
-      .patch(admin._id)
-      .set({
-        emailVerified: true,
-        accountStatus: "active",
-        verificationToken: null,
-        tokenDigest: null,
-        tokenExpiresAt: null,
-        updatedAt: new Date().toISOString(),
-      })
-      .commit();
-
-    return sendResponse(res, true, "Email verified successfully", 200, {
-      userId: admin._id,
-      username: admin.username,
-      email: admin.email,
-      role: admin.role,
-    });
-  } catch (error) {
-    console.error("Admin email verification error:", error);
-    return sendResponse(res, false, "Something went wrong during verification", 500);
-  }
-};
-
-export const resendVerification = async (req, res) => {
-  try {
-    const email = req.body?.email?.trim()?.toLowerCase();
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-    if (!email || !emailRegex.test(email)) {
-      return sendResponse(res, false, "A valid email address is required", 400);
-    }
-
-    const user = await client.fetch(
-      `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
-      { email }
-    );
-
-    if (!user) {
-      return sendResponse(res, false, "User not found", 404);
-    }
-
-    if (user.emailVerified) {
-      return sendResponse(res, false, "Email already verified", 400);
-    }
-
-    const newToken = crypto.randomBytes(32).toString("hex");
-    const newDigest = crypto.createHash("sha256").update(newToken).digest("hex");
-    const hashedToken = await bcrypt.hash(newToken, Number(process.env.SALT_ROUNDS));
-    const newExpiry = addMinutes(new Date(), 15).toISOString();
-
-    await client
-      .patch(user._id)
-      .set({
-        verificationToken: hashedToken,
-        tokenDigest: newDigest,
-        tokenExpiresAt: newExpiry,
-      })
-      .commit();
-
-    await sendVerificationEmail({
-      email: user.email,
-      name: user.username?.split(" ")[0] || "Admin",
-      token: newToken,
-    });
-
-    return sendResponse(res, true, "Verification email resent successfully", 200);
-  } catch (error) {
-    console.error("Error resending verification email:", error);
-    return sendResponse(res, false, "Something went wrong. Please try again later.", 500);
   }
 };
 
@@ -431,179 +288,179 @@ export const logout = async (req, res) => {
   }
 };
 
-export const forgotPassword = async (req, res) => {
-  try {
-    const email = req.body?.email?.trim()?.toLowerCase();
+// export const forgotPassword = async (req, res) => {
+//   try {
+//     const email = req.body?.email?.trim()?.toLowerCase();
 
-    if (!email) {
-      return sendResponse(res, false, "Email is required", 400);
-    }
+//     if (!email) {
+//       return sendResponse(res, false, "Email is required", 400);
+//     }
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return sendResponse(res, false, "Invalid email format", 400);
-    }
+//     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+//     if (!emailRegex.test(email)) {
+//       return sendResponse(res, false, "Invalid email format", 400);
+//     }
 
-    const user = await client.fetch(
-      `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
-      { email }
-    );
+//     const user = await client.fetch(
+//       `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
+//       { email }
+//     );
 
-    // Prevent email enumeration
-    if (!user) {
-      return sendResponse(
-        res,
-        true,
-        "If the account exists, an OTP has been sent",
-        200
-      );
-    }
+//     // Prevent email enumeration
+//     if (!user) {
+//       return sendResponse(
+//         res,
+//         true,
+//         "If the account exists, an OTP has been sent",
+//         200
+//       );
+//     }
 
-    const otp = crypto.randomInt(1000, 10000).toString();
-    const hashedOtp = await hashOtp(otp);
-    const expiry = addMinutes(new Date(), 10);
+//     const otp = crypto.randomInt(1000, 10000).toString();
+//     const hashedOtp = await hashOtp(otp);
+//     const expiry = addMinutes(new Date(), 10);
 
-    await client
-      .patch(user._id)
-      .set({
-        otp: hashedOtp,
-        otpExpiry: expiry,
-        otpVerified: false,
-      })
-      .commit();
+//     await client
+//       .patch(user._id)
+//       .set({
+//         otp: hashedOtp,
+//         otpExpiry: expiry,
+//         otpVerified: false,
+//       })
+//       .commit();
 
-    try {
-      await sendPasswordResetEmail(
-        user.email,
-        user.username?.split(" ")[0] || "dear",
-        otp
-      );
+//     try {
+//       await sendPasswordResetEmail(
+//         user.email,
+//         user.username?.split(" ")[0] || "dear",
+//         otp
+//       );
 
-      console.log("OTP REQUEST RECEIVED FOR:", user.email);
+//       console.log("OTP REQUEST RECEIVED FOR:", user.email);
 
-      return sendResponse(res, true, "If the account exists, an OTP has been sent", 200);
-    } catch (err) {
-      console.error("OTP EMAIL ERROR:", err);
-      return sendResponse(res, false, "Email delivery failed", 500);
-    }
-  } catch (err) {
-    console.error("Request OTP error:", err);
-    return sendResponse(
-      res,
-      false,
-      "Server error. Please try again later.",
-      500
-    );
-  }
-};
-
-
-export const verifyAdminOtp = async (req, res) => {
-  try {
-    const { email, otp } = req.body || {};
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email || !otp) {
-      return sendResponse(res, false, "Email and OTP are required.", 400);
-    }
-
-    if (!emailRegex.test(email)) {
-      return sendResponse(res, false, "Please provide a valid email address.", 400);
-    }
-
-    const normalizedEmail = email.toLowerCase();
-
-    const user = await client.fetch(
-      `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
-      { email: normalizedEmail }
-    );
-
-    if (!user) {
-      return sendResponse(res, false, "Invalid OTP or email.", 400);
-    }
-
-    const isOtpValid = await verifyOtp(otp, user.otp);
-
-    if (!isOtpValid || !user.otpExpiry || new Date(user.otpExpiry) < new Date()) {
-      return sendResponse(res, false, "Invalid or expired OTP.", 400);
-    }
-
-    await client.patch(user._id).set({ otpVerified: true }).commit();
-
-    return sendResponse(res, true, "OTP verified successfully.", 200);
-  } catch (err) {
-    console.error("OTP verification error:", err);
-    return sendResponse(
-      res,
-      false,
-      "An unexpected server error occurred. Please try again later.",
-      500
-    );
-  }
-};
+//       return sendResponse(res, true, "If the account exists, an OTP has been sent", 200);
+//     } catch (err) {
+//       console.error("OTP EMAIL ERROR:", err);
+//       return sendResponse(res, false, "Email delivery failed", 500);
+//     }
+//   } catch (err) {
+//     console.error("Request OTP error:", err);
+//     return sendResponse(
+//       res,
+//       false,
+//       "Server error. Please try again later.",
+//       500
+//     );
+//   }
+// };
 
 
-export const resetPassword = async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
+// export const verifyAdminOtp = async (req, res) => {
+//   try {
+//     const { email, otp } = req.body || {};
 
-    if (!email || !newPassword) {
-      return sendResponse(res, false, "Email and new password are required.", 400);
-    }
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return sendResponse(res, false, "Invalid email format.", 400);
-    }
+//     if (!email || !otp) {
+//       return sendResponse(res, false, "Email and OTP are required.", 400);
+//     }
 
-    const passwordRegex =
-      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]).{8,}$/;
-    if (!passwordRegex.test(newPassword)) {
-      return sendResponse(
-        res,
-        false,
-        "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
-        400
-      );
-    }
+//     if (!emailRegex.test(email)) {
+//       return sendResponse(res, false, "Please provide a valid email address.", 400);
+//     }
 
-    const normalizedEmail = email.toLowerCase();
+//     const normalizedEmail = email.toLowerCase();
 
-    const user = await client.fetch(
-      `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
-      { email: normalizedEmail }
-    );
+//     const user = await client.fetch(
+//       `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
+//       { email: normalizedEmail }
+//     );
 
-    if (!user || !user.otpVerified) {
-      return sendResponse(res, false, "Invalid email or OTP not verified.", 400);
-    }
+//     if (!user) {
+//       return sendResponse(res, false, "Invalid OTP or email.", 400);
+//     }
 
-    const hashedPassword = await hashPassword(newPassword);
+//     const isOtpValid = await verifyOtp(otp, user.otp);
 
-    await client
-      .patch(user._id)
-      .set({
-        password: hashedPassword,
-        otp: null,
-        otpExpiry: null,
-        otpVerified: false,
-      })
-      .commit();
+//     if (!isOtpValid || !user.otpExpiry || new Date(user.otpExpiry) < new Date()) {
+//       return sendResponse(res, false, "Invalid or expired OTP.", 400);
+//     }
 
-    await sendPasswordResetConfirmationEmail(
-      user.email,
-      user.username?.split(" ")[0] || "Admin"
-    );
+//     await client.patch(user._id).set({ otpVerified: true }).commit();
 
-    return sendResponse(res, true, "Password reset successful.", 200);
-  } catch (error) {
-    console.error("Reset password error:", error);
-    return sendResponse(
-      res,
-      false,
-      "An unexpected server error occurred. Please try again later.",
-      500
-    );
-  }
-};
+//     return sendResponse(res, true, "OTP verified successfully.", 200);
+//   } catch (err) {
+//     console.error("OTP verification error:", err);
+//     return sendResponse(
+//       res,
+//       false,
+//       "An unexpected server error occurred. Please try again later.",
+//       500
+//     );
+//   }
+// };
+
+
+// export const resetPassword = async (req, res) => {
+//   try {
+//     const { email, newPassword } = req.body;
+
+//     if (!email || !newPassword) {
+//       return sendResponse(res, false, "Email and new password are required.", 400);
+//     }
+
+//     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+//     if (!emailRegex.test(email)) {
+//       return sendResponse(res, false, "Invalid email format.", 400);
+//     }
+
+//     const passwordRegex =
+//       /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]).{8,}$/;
+//     if (!passwordRegex.test(newPassword)) {
+//       return sendResponse(
+//         res,
+//         false,
+//         "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
+//         400
+//       );
+//     }
+
+//     const normalizedEmail = email.toLowerCase();
+
+//     const user = await client.fetch(
+//       `*[_type == "user" && role == "admin" && lower(email) == $email][0]`,
+//       { email: normalizedEmail }
+//     );
+
+//     if (!user || !user.otpVerified) {
+//       return sendResponse(res, false, "Invalid email or OTP not verified.", 400);
+//     }
+
+//     const hashedPassword = await hashPassword(newPassword);
+
+//     await client
+//       .patch(user._id)
+//       .set({
+//         password: hashedPassword,
+//         otp: null,
+//         otpExpiry: null,
+//         otpVerified: false,
+//       })
+//       .commit();
+
+//     await sendPasswordResetConfirmationEmail(
+//       user.email,
+//       user.username?.split(" ")[0] || "Admin"
+//     );
+
+//     return sendResponse(res, true, "Password reset successful.", 200);
+//   } catch (error) {
+//     console.error("Reset password error:", error);
+//     return sendResponse(
+//       res,
+//       false,
+//       "An unexpected server error occurred. Please try again later.",
+//       500
+//     );
+//   }
+// };
