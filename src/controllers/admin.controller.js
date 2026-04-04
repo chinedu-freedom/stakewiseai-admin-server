@@ -56,12 +56,12 @@ export const changePasswordController = async (req, res) => {
 
     await client
       .patch(dbUser._id)
-      .set({ password: hashedNewPassword, _updatedAt: new Date().toISOString() })
+      .set({ password: hashedNewPassword, updatedAt: new Date().toISOString() })
       .commit();
 
     await sendPasswordChangeConfirmationEmail(
       dbUser.email,
-      dbUser.userName?.split(" ")[0] || "Admin"
+      dbUser.username?.split(" ")[0] || "Admin"
     );
 
     return sendResponse(res, true, "Password updated successfully", 200);
@@ -150,7 +150,7 @@ export const updateUserProfileController = asyncHandler(async (req, res) => {
 
   const safeData = {
     email: updatedUser.email,
-    userName: updatedUser.userName,
+    username: updatedUser.username,
     dateOfBirth: updatedUser.dateOfBirth,
     postalCode: updatedUser.postalCode,
     city: updatedUser.city,
@@ -170,7 +170,7 @@ export const getUserProfileController = asyncHandler(async (req, res) => {
 
   const query = `*[_type == "user" && role == "admin" && _id == $id][0]{
     email,
-    userName,
+    username,
     dateOfBirth,
     postalCode,
     city,
@@ -228,7 +228,7 @@ export const getDashboardStatsController = async (req, res) => {
       timestamp,
       "user": user->{
         _id,
-        userName,
+        username,
         email
       }
     }`;

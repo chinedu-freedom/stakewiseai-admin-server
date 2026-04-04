@@ -12,7 +12,7 @@ import { hashOtp, comparePasswords, hashPassword, generateToken, verifyOtp } fro
 
 export const register = async (req, res) => {
   try {
-    const { adminSecret, userName, email, phoneNumber, password } = req.body;
+    const { adminSecret, username, email, phoneNumber, password } = req.body;
 
     if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET_CODE) {
       return sendResponse(
@@ -23,7 +23,7 @@ export const register = async (req, res) => {
       );
     }
 
-    if (!userName) {
+    if (!username) {
       return sendResponse(
         res,
         false,
@@ -118,7 +118,7 @@ export const register = async (req, res) => {
 
     const newAdmin = await client.create({
       _type: "user",
-      userName: userName.trim(),
+      username: username.trim(),
       email: emailNormalized,
       phoneNumber: normalizedPhone,
       password: hashedPassword,
@@ -128,14 +128,14 @@ export const register = async (req, res) => {
       tokenDigest,
       role: "admin",
       tokenExpiresAt: addMinutes(new Date(), 15).toISOString(),
-      _createdAt: new Date().toISOString(),
-      _updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     try {
       await sendVerificationEmail({
         email: newAdmin.email,
-        name: newAdmin.userName.split(" ")[0],
+        name: newAdmin.username.split(" ")[0],
         token: verificationToken,
       });
     } catch (emailErr) {
@@ -155,7 +155,7 @@ export const register = async (req, res) => {
       201,
       {
         userId: newAdmin._id,
-        userName: newAdmin.userName,
+        username: newAdmin.username,
         email: newAdmin.email,
         accountStatus: newAdmin.accountStatus,
         role: newAdmin.role,
@@ -209,13 +209,13 @@ export const verifyEmail = async (req, res) => {
         verificationToken: null,
         tokenDigest: null,
         tokenExpiresAt: null,
-        _updatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       })
       .commit();
 
     return sendResponse(res, true, "Email verified successfully", 200, {
       userId: admin._id,
-      userName: admin.userName,
+      username: admin.username,
       email: admin.email,
       role: admin.role,
     });
@@ -264,7 +264,7 @@ export const resendVerification = async (req, res) => {
 
     await sendVerificationEmail({
       email: user.email,
-      name: user.userName?.split(" ")[0] || "Admin",
+      name: user.username?.split(" ")[0] || "Admin",
       token: newToken,
     });
 
@@ -308,7 +308,7 @@ export const login = async (req, res) => {
     const user = await client.fetch(
       `*[_type == "user" && email == $email][0]{
         _id,
-        userName,
+        username,
         email,
         accountStatus,
         emailVerified,
@@ -375,7 +375,7 @@ export const login = async (req, res) => {
 
     res.cookie("token", accessToken, {
   httpOnly: true,
-  secure: true,
+  secure: false,
   sameSite: "none",
   path: "/",
   maxAge: keepMeLoggedIn
@@ -386,7 +386,7 @@ export const login = async (req, res) => {
 
     return sendResponse(res, true, "Admin login successful", 200, {
       userId: user._id,
-      userName: user.userName,
+      username: user.username,
       email: user.email,
       role: user.role,
       accountStatus: user.accountStatus,
@@ -475,7 +475,7 @@ export const forgotPassword = async (req, res) => {
     try {
       await sendPasswordResetEmail(
         user.email,
-        user.userName?.split(" ")[0] || "dear",
+        user.username?.split(" ")[0] || "dear",
         otp
       );
 
@@ -593,7 +593,7 @@ export const resetPassword = async (req, res) => {
 
     await sendPasswordResetConfirmationEmail(
       user.email,
-      user.userName?.split(" ")[0] || "Admin"
+      user.username?.split(" ")[0] || "Admin"
     );
 
     return sendResponse(res, true, "Password reset successful.", 200);
