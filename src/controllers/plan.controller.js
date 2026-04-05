@@ -45,7 +45,7 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
 
   // Prevent duplicate plan title
   const existing = await client.fetch(
-    `*[_type=="investment" && title==$title][0]`,
+    `*[_type=="plan" && title==$title][0]`,
     { title }
   );
 
@@ -56,7 +56,7 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
   const now = new Date().toISOString();
 
   const created = await client.create({
-    _type: "investment",
+    _type: "plan",
     title,
     minDeposit,
     maxDeposit,
@@ -82,7 +82,7 @@ export const getInvestmentPlansController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
 
   const query = `
-    *[_type == "investment"] | order(createdAt desc) [$start...$end] {
+    *[_type == "plan"] | order(createdAt desc) [$start...$end] {
       _id,
       title,
       minDeposit,
@@ -96,9 +96,9 @@ export const getInvestmentPlansController = asyncHandler(async (req, res) => {
     }
   `;
 
-  const countQuery = `count(*[_type == "investment"])`;
+  const countQuery = `count(*[_type == "plan"])`;
 
-  const [investments, total] = await Promise.all([
+  const [plans, total] = await Promise.all([
     client.fetch(query, { start, end }),
     client.fetch(countQuery),
   ]);
@@ -110,7 +110,7 @@ export const getInvestmentPlansController = asyncHandler(async (req, res) => {
     true,
     "Investment plans fetched successfully",
     200,
-    investments,
+    plans,
     meta
   );
 });
@@ -124,7 +124,7 @@ export const getInvestmentPlanByIdController = async (req, res) => {
     }
 
     const investment = await client.fetch(
-      `*[_type == "investment" && _id == $id][0]{
+      `*[_type == "plan" && _id == $id][0]{
         _id,
         title,
         minDeposit,
@@ -164,7 +164,7 @@ export const updateInvestmentPlanController = asyncHandler(async (req, res) => {
   }
 
   const existing = await client.fetch(
-    `*[_type=="investment" && _id==$id][0]`,
+    `*[_type=="plan" && _id==$id][0]`,
     { id }
   );
 
@@ -260,7 +260,7 @@ export const deleteInvestmentPlanController = async (req, res) => {
     }
 
     const existing = await client.fetch(
-      `*[_type=="investment" && _id==$id][0]`,
+      `*[_type=="plan" && _id==$id][0]`,
       { id }
     );
 
