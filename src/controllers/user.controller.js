@@ -17,14 +17,10 @@ export const getUsersController = asyncHandler(async (req, res) => {
     username,
     email,
     phoneNumber,
-    accountStatus,
     emailVerified,
-    accountBalance,
+    accountStatus,
     createdAt,
-    "status": coalesce(
-      *[_type == "kyc" && user._ref == ^._id][0].status,
-      "not submitted"
-    )
+    updatedAt,
   }`;
 
   const totalQuery = `count(*[
@@ -63,20 +59,10 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
     accountStatus,
     accountBalance,
     emailVerified,
+    image,
     referralCode,
-    isDeleted,
     createdAt,
     updatedAt,
-    "kyc": coalesce(
-      *[_type == "kyc" && references(^._id)][0]{
-        createdAt,
-        _id,
-        status
-      },
-      {
-        "status": "not submitted"
-      }
-    )
   }`,
   { id }
 );
