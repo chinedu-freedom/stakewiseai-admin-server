@@ -53,7 +53,7 @@ export const getDepositByIdController = asyncHandler(async (req, res) => {
       crypto,
       status,
       fundedAt,
-      updatedAt,
+      _updatedAt,
       "proofOfPayment": proofOfPayment.asset->url,
       "user": user->{
         _id,
@@ -63,7 +63,7 @@ export const getDepositByIdController = asyncHandler(async (req, res) => {
         accountStatus,
         accountBalance,
         createdAt,
-        updatedAt
+        _updatedAt
       }
     }`,
     { id }
