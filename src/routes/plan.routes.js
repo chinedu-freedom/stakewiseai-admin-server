@@ -9,16 +9,12 @@ import {
 
  } from "../controllers/plan.controller.js";
 
-
-
-import { upload } from "../middlewares/upload.js";
-
 const router = express.Router();
 
 router.get("/", withAdminAuth, getInvestmentPlansController);
-router.post("/", withAdminAuth, upload.single("image"), createInvestmentPlanController);
+router.post("/", withAdminAuth, createInvestmentPlanController);
 router.delete("/:id", withAdminAuth, deleteInvestmentPlanController);
-router.patch("/:id", withAdminAuth, upload.single("image"), updateInvestmentPlanController);
+router.patch("/:id", withAdminAuth, updateInvestmentPlanController);
 router.get("/:id", withAdminAuth, getInvestmentPlanByIdController);
 
 
