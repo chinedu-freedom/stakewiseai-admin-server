@@ -12,7 +12,7 @@ export const getDepositsController = asyncHandler(async (req, res) => {
 
   const query = `
     *[_type == "deposit"]
-    | order(_createdAt desc)
+    | order(createdAt desc)
     [$start...$end]{
       _id,
       amount,
@@ -53,7 +53,7 @@ export const getDepositByIdController = asyncHandler(async (req, res) => {
       crypto,
       status,
       fundedAt,
-      _updatedAt,
+      updatedAt,
       "proofOfPayment": proofOfPayment.asset->url,
       "user": user->{
         _id,
@@ -62,8 +62,8 @@ export const getDepositByIdController = asyncHandler(async (req, res) => {
         phoneNumber,
         accountStatus,
         accountBalance,
-        _createdAt,
-        _updatedAt
+        createdAt,
+        updatedAt
       }
     }`,
     { id }
@@ -118,7 +118,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
   }
 
   // Update deposit status
-  await client.patch(id).set({ status, _updatedAt: new Date().toISOString() }).commit();
+  await client.patch(id).set({ status, updatedAt: new Date().toISOString() }).commit();
 
   // Send emails idempotently
   if (status === "successful" && !deposit.emailSuccessSent && deposit.user?.email) {

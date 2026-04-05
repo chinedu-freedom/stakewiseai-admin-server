@@ -104,8 +104,8 @@ export const register = async (req, res) => {
       emailVerified: true,              
       accountStatus: "active",          
       role: "admin",
-      _createdAt: new Date().toISOString(),
-      _updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     return sendResponse(
@@ -233,7 +233,7 @@ export const login = async (req, res) => {
     res.cookie("token", accessToken, {
   httpOnly: true,
   secure: false,
-  sameSite: "lax",
+  sameSite: "none",
   path: "/",
   maxAge: keepMeLoggedIn
     ? 1000 * 60 * 60 * 24
@@ -276,7 +276,7 @@ export const logout = async (req, res) => {
     res.cookie("token", "", {
       httpOnly: true,
       secure: false,
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
       expires: new Date(0),
     });

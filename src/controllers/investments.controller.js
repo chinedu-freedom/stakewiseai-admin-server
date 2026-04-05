@@ -70,8 +70,8 @@ export const createInvestmentController = asyncHandler(async (req, res) => {
     image: uploadedImage, // assign the full object
     plans: [],
     status,
-    _createdAt: new Date().toISOString(),
-    _updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 
   return sendResponse(res, true, "Investment created successfully", 201, created);
@@ -83,11 +83,11 @@ export const getInvestmentsController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
 
   const query = `
-    *[_type == "investment"] | order(_createdAt desc) [$start...$end] {
+    *[_type == "investment"] | order(createdAt desc) [$start...$end] {
       _id,
       title,
-      _createdAt,
-      _updatedAt,
+      createdAt,
+      updatedAt,
       status
     }
   `;
@@ -119,8 +119,8 @@ export const getInvestmentByIdController = async (req, res) => {
         slug,
         type,
         status,
-        _createdAt,
-        _updatedAt,
+        createdAt,
+        updatedAt,
         "imageUrl": image.asset->url,
         plans[]->{
           _id,
@@ -210,7 +210,7 @@ export const updateInvestmentController = asyncHandler(async (req, res) => {
       slug: { current: slug },
       image: uploadedImage,
       status,
-      _updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     })
     .commit();
 

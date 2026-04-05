@@ -56,7 +56,7 @@ export const changePasswordController = async (req, res) => {
 
     await client
       .patch(dbUser._id)
-      .set({ password: hashedNewPassword, _updatedAt: new Date().toISOString() })
+      .set({ password: hashedNewPassword, updatedAt: new Date().toISOString() })
       .commit();
 
     await sendPasswordChangeConfirmationEmail(
@@ -125,10 +125,10 @@ export const updateUserProfileController = asyncHandler(async (req, res) => {
     return sendResponse(res, false, "Validation failed", 400, { errors });
   }
 
-  const _updatedAta = {};
-  if (dateOfBirth) _updatedAta.dateOfBirth = new Date(dateOfBirth).toISOString();
-  if (postalCode) _updatedAta.postalCode = postalCode;
-  if (city) _updatedAta.city = city;
+  const updateData = {};
+  if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth).toISOString();
+  if (postalCode) updateData.postalCode = postalCode;
+  if (city) updateData.city = city;
 
   // Upload image to Sanity and get the proper _ref
   if (imageFile) {
@@ -136,16 +136,16 @@ export const updateUserProfileController = asyncHandler(async (req, res) => {
     if (!uploadedImage || !uploadedImage.asset?._ref) {
       return sendResponse(res, false, "Failed to upload image", 500);
     }
-    _updatedAta.image = uploadedImage; // directly assign the object
+    updateData.image = uploadedImage; // directly assign the object
   }
 
-  if (Object.keys(_updatedAta).length === 0) {
+  if (Object.keys(updateData).length === 0) {
     return sendResponse(res, false, "No valid fields provided", 400);
   }
 
   const updatedUser = await client
     .patch(user.userId)
-    .set(_updatedAta)
+    .set(updateData)
     .commit({ autoGenerateArrayKeys: true });
 
   const safeData = {

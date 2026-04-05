@@ -12,7 +12,7 @@ export const getWithdrawalsController = asyncHandler(async (req, res) => {
 
   const query = `
     *[_type == "withdrawal"]
-    | order(_createdAt desc)
+    | order(createdAt desc)
     [$start...$end]{
       _id,
       crypto,
@@ -51,8 +51,8 @@ export const getWithdrawalController = asyncHandler(async (req, res) => {
 
   const withdrawal = await client.fetch(
     `*[_type == "withdrawal" && _id == $id][0]{
-      _id, amount, crypto, status, requestedAt, _updatedAt, walletAddress, user->{
-        _id, username, accountBalance, email, phoneNumber, accountStatus, totalProfit, _createdAt, _updatedAt
+      _id, amount, crypto, status, requestedAt, updatedAt, walletAddress, user->{
+        _id, username, accountBalance, email, phoneNumber, accountStatus, totalProfit, createdAt, updatedAt
       }
     }`,
     { id }
@@ -125,7 +125,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   }
 
   // Update withdrawal status
-  await client.patch(id).set({ status, _updatedAt: new Date().toISOString() }).commit();
+  await client.patch(id).set({ status, updatedAt: new Date().toISOString() }).commit();
 
   // ===== EMAIL IDEMPOTENCY =====
   if (status === "successful" && !withdrawal.emailSuccessSent) {
