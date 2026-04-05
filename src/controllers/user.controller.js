@@ -86,7 +86,11 @@ export const updateUserController = asyncHandler(async (req, res) => {
 
   try {
     const currentUser = await client.fetch(
-      `*[_type == "user" && role == "user" && _id == $id][0]{ accountStatus, accountBalance, emailVerified }`,
+      `*[_type == "user" && role == "user" && _id == $id][0]{ 
+        accountStatus, 
+        accountBalance, 
+        emailVerified 
+      }`,
       { id }
     );
 
@@ -96,10 +100,11 @@ export const updateUserController = asyncHandler(async (req, res) => {
     const updateFields = {};
 
     // =========================
-    // ACCOUNT STATUS
+    // ACCOUNT STATUS (WITH SYNC)
     // =========================
     if (accountStatus) {
       const status = accountStatus.toLowerCase();
+
       const allowedStatuses = [
         "pending",
         "active",
@@ -112,15 +117,22 @@ export const updateUserController = asyncHandler(async (req, res) => {
         return sendResponse(
           res,
           false,
-          `Invalid account status. Allowed values: ${allowedStatuses.join(
-            ", "
-          )}`,
+          `Invalid account status. Allowed values: ${allowedStatuses.join(", ")}`,
           400
         );
       }
 
       if (status !== (currentUser.accountStatus || "").toLowerCase()) {
         updateFields.accountStatus = status;
+
+        // ✅ AUTO SYNC emailVerified
+        if (status === "active") {
+          updateFields.emailVerified = true;
+        }
+
+        if (status === "pending") {
+          updateFields.emailVerified = false;
+        }
       }
     }
 
@@ -152,7 +164,7 @@ export const updateUserController = asyncHandler(async (req, res) => {
     }
 
     // =========================
-    // EMAIL VERIFIED
+    // EMAIL VERIFIED (OPTIONAL MANUAL OVERRIDE)
     // =========================
     if (typeof emailVerified !== "undefined") {
       let parsedEmailVerified;
@@ -197,7 +209,7 @@ export const updateUserController = asyncHandler(async (req, res) => {
     return sendResponse(res, true, "User updated successfully", 200, {
       accountBalance: updatedUser.accountBalance,
       accountStatus: updatedUser.accountStatus,
-      emailVerified: updatedUser.emailVerified, // ✅ added
+      emailVerified: updatedUser.emailVerified,
       updatedAt: updatedUser.updatedAt,
     });
   } catch (error) {
