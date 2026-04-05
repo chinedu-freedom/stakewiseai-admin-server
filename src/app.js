@@ -8,9 +8,8 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import withdrawalRoutes from "./routes/withdrawal.routes.js";
 import depositRoutes from "./routes/deposit.routes.js";
-// import usersRoutes from "./routes/user.routes.js";
-import usersInvestmentRoutes from "./routes/investments.routes.js";
-import investmentsRoutes from "./routes/investments.routes.js";
+import usersInvestmentRoutes from "./routes/plan.routes.js";
+import planRoutes from "./routes/plan.routes.js";
 import usersRoutes from "./routes/user.routes.js";
 
 const app = express();
@@ -40,7 +39,7 @@ app.use(
 
 
 app.use("/api/users/investments", usersInvestmentRoutes);
-app.use("/api/investments", investmentsRoutes);
+app.use("/api/plans", planRoutes);
 app.use("/api/admin/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/withdrawals", withdrawalRoutes);

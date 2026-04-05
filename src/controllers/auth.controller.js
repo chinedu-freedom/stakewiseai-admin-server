@@ -104,8 +104,8 @@ export const register = async (req, res) => {
       emailVerified: true,              
       accountStatus: "active",          
       role: "admin",
-      _createdAt: new Date().toISOString(),
-      _updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     return sendResponse(

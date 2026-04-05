@@ -11,7 +11,7 @@ export const getUsersController = asyncHandler(async (req, res) => {
     role == "user" && 
     (!defined(isDeleted) || !isDeleted)
   ]
-  | order(_createdAt desc)
+  | order(createdAt desc)
   [$start...$end]{
     _id,
     username,
@@ -20,7 +20,7 @@ export const getUsersController = asyncHandler(async (req, res) => {
     accountStatus,
     emailVerified,
     accountBalance,
-    _createdAt,
+    createdAt,
     "status": coalesce(
       *[_type == "kyc" && user._ref == ^._id][0].status,
       "not submitted"
@@ -65,11 +65,11 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
     emailVerified,
     referralCode,
     isDeleted,
-    _createdAt,
-    _updatedAt,
+    createdAt,
+    updatedAt,
     "kyc": coalesce(
       *[_type == "kyc" && references(^._id)][0]{
-        _createdAt,
+        createdAt,
         _id,
         status
       },
@@ -140,13 +140,13 @@ export const updateUserController = asyncHandler(async (req, res) => {
       return sendResponse(res, false, "No changes detected. User data is already up to date.", 400);
     }
 
-    updateFields._updatedAt = new Date().toISOString();
+    updateFields.updatedAt = new Date().toISOString();
     const updatedUser = await client.patch(id).set(updateFields).commit();
 
     return sendResponse(res, true, "User updated successfully", 200, {
       accountBalance: updatedUser.accountBalance,
       accountStatus: updatedUser.accountStatus,
-      _updatedAt: updatedUser._updatedAt,
+      updatedAt: updatedUser.updatedAt,
     });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -169,7 +169,7 @@ export const deleteUserController = asyncHandler(async (req, res) => {
     if (!user) return sendResponse(res, false, "User not found or already deleted", 404);
 
     const updatedUser = await client.patch(id)
-      .set({ isDeleted: true, _updatedAt: new Date().toISOString() })
+      .set({ isDeleted: true, updatedAt: new Date().toISOString() })
       .commit();
 
     return sendResponse(res, true, "User deleted successfully", 200, {
