@@ -3,7 +3,7 @@ import { getDashboardStatsController } from "../controllers/dashboardStats.contr
 import { changePasswordController, getUserProfileController, updateUserProfileController } from "../controllers/admin.controller.js";
 import { withAdminAuth } from "../middlewares/authGuard.js";
 import {
-  getUsersController
+  getUsersController,
   deleteUserController,
   updateUserController,
   getUserByIdController,
