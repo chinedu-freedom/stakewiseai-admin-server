@@ -80,58 +80,124 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
 // PATCH — Admin update user
 export const updateUserController = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { accountStatus, accountBalance } = req.body;
+  const { accountStatus, accountBalance, emailVerified } = req.body;
 
   if (!id) return sendResponse(res, false, "User ID is required", 400);
 
   try {
     const currentUser = await client.fetch(
-      `*[_type == "user" && role == "user" && _id == $id][0]{ accountStatus, accountBalance }`,
+      `*[_type == "user" && role == "user" && _id == $id][0]{ accountStatus, accountBalance, emailVerified }`,
       { id }
     );
 
-    if (!currentUser) return sendResponse(res, false, "User not found", 404);
+    if (!currentUser)
+      return sendResponse(res, false, "User not found", 404);
 
     const updateFields = {};
 
+    // =========================
+    // ACCOUNT STATUS
+    // =========================
     if (accountStatus) {
       const status = accountStatus.toLowerCase();
-      const allowedStatuses = ["pending", "active", "inactive", "suspended", "deactivated"];
+      const allowedStatuses = [
+        "pending",
+        "active",
+        "inactive",
+        "suspended",
+        "deactivated",
+      ];
+
       if (!allowedStatuses.includes(status)) {
         return sendResponse(
           res,
           false,
-          `Invalid account status. Allowed values: ${allowedStatuses.join(", ")}`,
+          `Invalid account status. Allowed values: ${allowedStatuses.join(
+            ", "
+          )}`,
           400
         );
       }
+
       if (status !== (currentUser.accountStatus || "").toLowerCase()) {
         updateFields.accountStatus = status;
       }
     }
 
+    // =========================
+    // ACCOUNT BALANCE
+    // =========================
     if (typeof accountBalance !== "undefined") {
       if (typeof accountBalance !== "number" || isNaN(accountBalance)) {
-        return sendResponse(res, false, "Account balance must be a valid number", 400);
+        return sendResponse(
+          res,
+          false,
+          "Account balance must be a valid number",
+          400
+        );
       }
+
       if (accountBalance < 0) {
-        return sendResponse(res, false, "Account balance cannot be negative", 400);
+        return sendResponse(
+          res,
+          false,
+          "Account balance cannot be negative",
+          400
+        );
       }
+
       if (accountBalance !== currentUser.accountBalance) {
         updateFields.accountBalance = accountBalance;
       }
     }
 
+    // =========================
+    // EMAIL VERIFIED
+    // =========================
+    if (typeof emailVerified !== "undefined") {
+      let parsedEmailVerified;
+
+      if (typeof emailVerified === "boolean") {
+        parsedEmailVerified = emailVerified;
+      } else if (
+        emailVerified === "true" ||
+        emailVerified === "false"
+      ) {
+        parsedEmailVerified = emailVerified === "true";
+      } else {
+        return sendResponse(
+          res,
+          false,
+          "emailVerified must be a boolean (true or false)",
+          400
+        );
+      }
+
+      if (parsedEmailVerified !== currentUser.emailVerified) {
+        updateFields.emailVerified = parsedEmailVerified;
+      }
+    }
+
+    // =========================
+    // NO CHANGES CHECK
+    // =========================
     if (Object.keys(updateFields).length === 0) {
-      return sendResponse(res, false, "No changes detected. User data is already up to date.", 400);
+      return sendResponse(
+        res,
+        false,
+        "No changes detected. User data is already up to date.",
+        400
+      );
     }
 
     updateFields.updatedAt = new Date().toISOString();
+
     const updatedUser = await client.patch(id).set(updateFields).commit();
 
     return sendResponse(res, true, "User updated successfully", 200, {
       accountBalance: updatedUser.accountBalance,
       accountStatus: updatedUser.accountStatus,
+      emailVerified: updatedUser.emailVerified, // ✅ added
       updatedAt: updatedUser.updatedAt,
     });
   } catch (error) {
