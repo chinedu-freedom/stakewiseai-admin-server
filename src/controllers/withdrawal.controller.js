@@ -17,6 +17,7 @@ export const getWithdrawalsController = asyncHandler(async (req, res) => {
       _id,
       amount,
       requestedAt,
+      updatedAt,
       status,
       "user": {
         "_id": user->_id,
