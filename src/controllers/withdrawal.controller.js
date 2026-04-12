@@ -212,3 +212,81 @@ export const deleteWithdrawalController = asyncHandler(async (req, res) => {
 
   return sendResponse(res, true, "Withdrawal deleted successfully", 200);
 });
+
+
+
+
+
+
+// import { client } from "../../sanity.js";
+
+// export async function approveWithdrawal(withdrawalId) {
+//   const withdrawal = await client.fetch(
+//     `*[_type=="withdrawal" && _id==$id][0]{
+//       _id,
+//       status,
+//       amount,
+//       user->{ _id }
+//     }`,
+//     { id: withdrawalId }
+//   );
+
+//   if (!withdrawal || withdrawal.status !== "pending") {
+//     throw new Error("Invalid withdrawal");
+//   }
+
+//   const userId = withdrawal.user._id;
+//   const amount = Number(withdrawal.amount) || 0;
+
+//   await client
+//     .transaction()
+//     .patch(withdrawalId, {
+//       set: {
+//         status: "approved",
+//         updatedAt: new Date().toISOString(),
+//       },
+//     })
+//     .patch(userId, {
+//       inc: {
+//         // ✅ ONLY release reserved funds
+//         reservedProfit: -amount,
+//       },
+//     })
+//     .commit();
+
+//   return true;
+// }
+
+
+// import { client } from "../../sanity.js";
+
+// export async function rejectWithdrawal(withdrawalId) {
+//   const withdrawal = await client.fetch(
+//     `*[_type=="withdrawal" && _id==$id][0]`,
+//     { id: withdrawalId }
+//   );
+
+//   if (!withdrawal || withdrawal.status !== "pending") {
+//     throw new Error("Invalid withdrawal");
+//   }
+
+//   const userId = withdrawal.user._ref;
+//   const amount = withdrawal.amount;
+
+//   await client
+//     .transaction()
+//     .patch(withdrawalId, {
+//       set: {
+//         status: "rejected",
+//         updatedAt: new Date().toISOString(),
+//       },
+//     })
+// .patch(userId, {
+//   inc: {
+//     reservedProfit: -Number(amount || 0),
+//   },
+// })
+//     .commit();
+
+//   return true;
+// }
