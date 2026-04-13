@@ -241,7 +241,6 @@ export const login = async (req, res) => {
     ? 1000 * 60 * 60 * 24
     : 1000 * 60 * 60,
 });
-console.log("TOKEN:", req.cookies.get("token"));
 
     return sendResponse(res, true, "Admin login successful", 200, {
       userId: user._id,
