@@ -228,7 +228,7 @@ export const login = async (req, res) => {
     });
 
 
-    res.cookie("token", accessToken, {
+    res.cookie("stakewise-admin-token", accessToken, {
   httpOnly: true,
   // secure: false,
   // sameSite: "lax",
@@ -273,7 +273,7 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.cookie("token", "", {
+    res.cookie("stakewise-admin-token", "", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
