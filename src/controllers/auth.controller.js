@@ -2,6 +2,8 @@ import { client } from "../lib/sanity.js";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { sendResponse } from "../lib/response.js";
 import { comparePasswords, hashPassword, generateToken } from "../lib/auth.js";
+import { sendWelcomeEmail } from "../lib/mailer.js";
+
 
 
 
@@ -108,6 +110,14 @@ export const register = async (req, res) => {
       updatedAt: new Date().toISOString(),
     });
 
+    // Send Welcome Email
+    try {
+      await sendWelcomeEmail(emailNormalized, username.trim());
+    } catch (emailError) {
+      console.error("Welcome email failed to send:", emailError);
+      // We don't fail the registration if the email fails
+    }
+
     return sendResponse(
       res,
       true,
@@ -211,19 +221,7 @@ export const login = async (req, res) => {
       );
     }
 
-    if (!user.emailVerified) {
-      const tokenExpired =
-        user.tokenExpiresAt && new Date(user.tokenExpiresAt) < new Date();
-
-      return sendResponse(
-        res,
-        false,
-        tokenExpired
-          ? "Your verification link has expired. Please request a new one."
-          : "Please verify your email before logging in.",
-        403
-      );
-    }
+    // Email verification check removed as per new flow
 
     const accessToken = generateToken(user._id, user.role, {
       expiresIn: keepMeLoggedIn ? "24h" : "1h",
@@ -248,6 +246,7 @@ export const login = async (req, res) => {
       email: user.email,
       role: user.role,
       accountStatus: user.accountStatus,
+      accessToken,
     });
   } catch (error) {
     console.error("Admin login error:", error);

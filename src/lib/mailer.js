@@ -483,4 +483,54 @@ export async function sendDepositRejectedEmail({
   });
 }
 
+export async function sendWelcomeEmail(email, name) {
+  const subject = "Welcome to StakeWiseAI Admin";
+
+  const content = `
+    <div style="text-align:center; padding:30px 0;">
+      <h2 style="color:#0b132b; margin-bottom:10px;">
+        Welcome to the Team, ${name}!
+      </h2>
+      
+      <p style="color:#444; font-size:16px; line-height:1.6;">
+        Your admin account has been successfully created. You now have access to the 
+        <strong>StakeWiseAI Management Console</strong>.
+      </p>
+
+      <div style="margin:30px 0; background: #f8fafc; padding: 20px; border-radius: 8px; display: inline-block; text-align: left;">
+        <p style="margin: 0; color: #64748b; font-size: 14px;">Getting Started:</p>
+        <ul style="color: #334155; font-size: 15px; margin-top: 10px; padding-left: 20px;">
+          <li>Monitor user activities and investments</li>
+          <li>Manage platform configurations</li>
+          <li>Review and approve KYC submissions</li>
+          <li>Oversee financial transactions</li>
+        </ul>
+      </div>
+
+      <div style="margin:30px 0;">
+        <a href="${process.env.FRONTEND_URL}"
+          style="background:#0d9488; color:#ffffff; padding:14px 32px;
+                 border-radius:6px; text-decoration:none; font-weight:bold;
+                 display:inline-block;">
+          Go to Dashboard
+        </a>
+      </div>
+      
+      <p style="font-size:14px; color:#666;">
+        For security reasons, please ensure you never share your login credentials with anyone.
+      </p>
+
+      <p style="font-size:13px; color:#888; margin-top:20px;">
+        If you have any questions regarding your administrative access, please contact the system administrator.
+      </p>
+    </div>
+  `;
+
+  return await sendEmail({
+    to: email,
+    subject,
+    html: emailTemplate(content)
+  });
+}
+
 
