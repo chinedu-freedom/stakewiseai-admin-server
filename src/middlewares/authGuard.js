@@ -3,8 +3,10 @@ import { sendResponse } from "../lib/response.js";
 
 export const withAdminAuth = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.["stakewise-admin-token"] || req.headers.authorization?.split(" ")[1];
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
     if (!token) {
       return sendResponse(

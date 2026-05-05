@@ -227,19 +227,6 @@ export const login = async (req, res) => {
       expiresIn: keepMeLoggedIn ? "24h" : "1h",
     });
 
-
-    res.cookie("stakewise-admin-token", accessToken, {
-  httpOnly: true,
-  // secure: false,
-  // sameSite: "lax",
-  secure: true,
-  sameSite: "none",
-  path: "/",
-  maxAge: keepMeLoggedIn
-    ? 1000 * 60 * 60 * 24
-    : 1000 * 60 * 60,
-});
-
     return sendResponse(res, true, "Admin login successful", 200, {
       userId: user._id,
       username: user.username,
@@ -273,14 +260,6 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.cookie("stakewise-admin-token", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      expires: new Date(0),
-    });
-
     return sendResponse(res, true, "Logout successful", 200);
   } catch (error) {
     console.error("Logout error:", error);

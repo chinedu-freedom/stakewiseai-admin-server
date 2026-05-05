@@ -100,6 +100,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       status,
       amount,
       walletAddress,
+      crypto,
       emailSuccessSent,
       emailRejectedSent,
       user->{
@@ -117,7 +118,10 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
     return sendResponse(res, false, "Withdrawal not found", 404);
   }
 
-  if (withdrawal.status === "successful") {
+  // Support both frontend values (successful/failed) and schema values (approved/rejected)
+  const normalizedStatus = status === "approved" ? "successful" : status === "rejected" ? "failed" : status;
+
+  if (withdrawal.status === "successful" || withdrawal.status === "approved") {
     return sendResponse(
       res,
       false,
@@ -129,10 +133,9 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   const userId = withdrawal.user?._id;
   const amount = withdrawal.amount;
 
-  if (status === "successful" && userId) {
+  if (normalizedStatus === "successful" && userId) {
     await client
       .transaction()
-      // Deduct reservedProfit (release lock)
       .patch(userId, {
         inc: {
           reservedProfit: -amount,
@@ -145,7 +148,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       await sendWithdrawalSuccessEmail({
         email: withdrawal.user.email,
         name: withdrawal.user.username.split(" ")[0],
-        crypto: "USDT",
+        crypto: withdrawal.crypto || "USDT",
         amount,
         walletAddress: withdrawal.walletAddress,
         date: new Date(),
@@ -155,10 +158,9 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
     }
   }
 
-  if (status === "failed" && userId) {
+  if (normalizedStatus === "failed" && userId) {
     await client
       .transaction()
-      // Release reserved profit back
       .patch(userId, {
         inc: {
           reservedProfit: -amount,
@@ -170,7 +172,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       await sendWithdrawalRejectedEmail({
         email: withdrawal.user.email,
         name: withdrawal.user.username.split(" ")[0],
-        crypto: "USDT",
+        crypto: withdrawal.crypto || "USDT",
         amount,
         walletAddress: withdrawal.walletAddress,
         reason: "Withdrawal verification failed",
@@ -184,7 +186,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   await client
     .patch(id)
     .set({
-      status,
+      status: normalizedStatus,
       updatedAt: new Date().toISOString(),
     })
     .commit();

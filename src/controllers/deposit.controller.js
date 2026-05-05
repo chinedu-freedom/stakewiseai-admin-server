@@ -81,7 +81,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const allowedStatuses = ["successful", "failed"];
+  const allowedStatuses = ["successful", "failed", "approved", "rejected"];
   if (!allowedStatuses.includes(status)) {
     return sendResponse(res, false, "Invalid status", 400);
   }
@@ -91,6 +91,7 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
       _id,
       amount,
       status,
+      crypto,
       emailSuccessSent,
       emailRejectedSent,
       user->{
@@ -107,42 +108,47 @@ export const updateDepositStatusController = asyncHandler(async (req, res) => {
     return sendResponse(res, false, "Deposit not found", 404);
   }
 
-  if (deposit.status === status) {
+  const normalizedStatus = (status === "approved" || status === "successful") ? "successful" : (status === "rejected" || status === "failed") ? "failed" : status;
+
+  if (deposit.status === "successful" || deposit.status === "approved") {
     return sendResponse(res, false, "Deposit already processed", 400);
   }
 
   // Update user balance if successful
-  if (status === "successful" && deposit.user?._id) {
+  if (normalizedStatus === "successful" && deposit.user?._id) {
     const newBalance = (deposit.user.accountBalance || 0) + deposit.amount;
     await client.patch(deposit.user._id).set({ accountBalance: newBalance }).commit();
   }
 
   // Update deposit status
-  await client.patch(id).set({ status, updatedAt: new Date().toISOString() }).commit();
+  await client.patch(id).set({ status: normalizedStatus, updatedAt: new Date().toISOString() }).commit();
 
   // Send emails idempotently
-  if (status === "successful" && !deposit.emailSuccessSent && deposit.user?.email) {
+  if (normalizedStatus === "successful" && !deposit.emailSuccessSent && deposit.user?.email) {
     await sendDepositSuccessEmail({
       email: deposit.user.email,
       name: deposit.user.username.split(" ")[0],
       amount: deposit.amount,
+      method: deposit.crypto || "USDT",
+      reference: deposit._id,
       date: new Date(),
     });
     await client.patch(id).set({ emailSuccessSent: true }).commit();
   }
 
-  if (status === "failed" && !deposit.emailRejectedSent && deposit.user?.email) {
+  if (normalizedStatus === "failed" && !deposit.emailRejectedSent && deposit.user?.email) {
     await sendDepositRejectedEmail({
       email: deposit.user.email,
       name: deposit.user.username.split(" ")[0],
       amount: deposit.amount,
       reason: "Deposit verification failed",
+      reference: deposit._id,
       date: new Date(),
     });
     await client.patch(id).set({ emailRejectedSent: true }).commit();
   }
 
-  return sendResponse(res, true, `Deposit marked as ${status}`, 200);
+  return sendResponse(res, true, `Deposit marked as ${normalizedStatus}`, 200);
 });
 
 // DELETE — Remove Deposit

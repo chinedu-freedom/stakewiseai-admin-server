@@ -2,7 +2,7 @@ import { emailTemplate } from "../../template.js";
 import { sendEmail } from "../../zohoMailer.js";
 
 export async function sendVerificationEmail({ email, name, token }) {
-  const subject = "Verify Your Email - Prime Chain";
+  const subject = "Verify Your Email - StakeWiseAI";
 
   const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
 
@@ -13,7 +13,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </h2>
 
       <p style="color:#444; font-size:16px; line-height:1.6;">
-        Welcome to <strong>Prime Chain</strong> — your gateway to secure and smarter investing.
+        Welcome to <strong>StakeWiseAI</strong> — your gateway to secure and smarter investing.
         To activate your account, please verify your email. It only takes a few seconds!
       </p>
 
@@ -27,7 +27,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </div>
       
       <p style="margin-top: 20px; color: #666; font-size: 14px;">
-        By verifying, you'll join <strong>120,000+ active investors</strong> already diversifying with Prime Chain.  
+        By verifying, you'll join <strong>120,000+ active investors</strong> already diversifying with StakeWiseAI.  
         Don't miss out on smarter opportunities.
       </p>
       
@@ -36,7 +36,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </p>
 
       <p style="font-size:13px; color:#888; margin-top:20px;">
-        If you did not create a Prime Chain account, you can safely ignore this email.
+        If you did not create a StakeWiseAI account, you can safely ignore this email.
       </p>
     </div>
   `;
@@ -49,14 +49,14 @@ export async function sendVerificationEmail({ email, name, token }) {
 }
 
 export async function sendPasswordResetEmail(email, name, otp) {
-  const subject = "Your OTP Code - Prime Chain";
+  const subject = "Your OTP Code - StakeWiseAI";
 
   const content = `
     <p>Hi <strong>${name}</strong>,</p>
 
     <p>
       You recently requested to reset your password for your
-      <strong>Prime Chain</strong> account. Please use the OTP code below
+      <strong>StakeWiseAI</strong> account. Please use the OTP code below
       to complete the process:
     </p>
 
@@ -108,13 +108,11 @@ export async function sendPasswordChangeConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@primechainpro.com"
+        <a href="mailto:support@stakewiseai.vip"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
       </p>
-
-
 
       <p style="font-size:13px; color:#888; margin-top:20px;">
         If this was you, no further action is required.
@@ -144,13 +142,11 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@primechainpro.com"
+        <a href="mailto:support@stakewiseai.vip"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
       </p>
-
-  
 
       <p style="font-size:13px; color:#888; margin-top:20px;">
         If this was you, no further action is required.
@@ -166,7 +162,7 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 }
 
 export async function sendKycApprovedEmail(email, name) {
-  const subject = "Your KYC Has Been Approved - Prime Chain";
+  const subject = "Your KYC Has Been Approved - StakeWiseAI";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -176,10 +172,8 @@ export async function sendKycApprovedEmail(email, name) {
       
       <p style="color:#555; font-size:16px; line-height:1.6;">
         Congratulations! Your KYC submission has been <strong>approved</strong>.  
-        You now have full access to all Prime Chain features.
+        You now have full access to all StakeWiseAI features.
       </p>
-
-
     </div>
   `;
 
@@ -191,7 +185,7 @@ export async function sendKycApprovedEmail(email, name) {
 }
 
 export async function sendKycRejectedEmail(email, name, reasons) {
-  const subject = "Your KYC Has Been Rejected - Prime Chain";
+  const subject = "Your KYC Has Been Rejected - StakeWiseAI";
 
   const reasonsList = Array.isArray(reasons) 
     ? reasons.map(reason => `<li>${reason}</li>`).join("")
@@ -214,8 +208,6 @@ export async function sendKycRejectedEmail(email, name, reasons) {
       <p style="color:#555; font-size:16px; line-height:1.6;">
         Please correct these issues and resubmit your KYC.
       </p>
-
-    
     </div>
   `;
 
@@ -226,8 +218,6 @@ export async function sendKycRejectedEmail(email, name, reasons) {
   });
 }
 
-
-
 export async function sendWithdrawalSuccessEmail({
   email,
   name,
@@ -236,7 +226,7 @@ export async function sendWithdrawalSuccessEmail({
   walletAddress,
   date,
 }) {
-  const subject = "Withdrawal Successful - Prime Chain";
+  const subject = "Withdrawal Successful - StakeWiseAI";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -275,8 +265,6 @@ export async function sendWithdrawalSuccessEmail({
       <p style="font-size:14px; color:#666;">
         If you did not authorize this withdrawal, contact support immediately.
       </p>
-
-   
     </div>
   `;
 
@@ -287,7 +275,6 @@ export async function sendWithdrawalSuccessEmail({
   });
 }
 
-
 export async function sendWithdrawalRejectedEmail({
   email,
   name,
@@ -297,7 +284,7 @@ export async function sendWithdrawalRejectedEmail({
   reason,
   date,
 }) {
-  const subject = "Withdrawal Rejected - Prime Chain";
+  const subject = "Withdrawal Rejected - StakeWiseAI";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -338,8 +325,7 @@ export async function sendWithdrawalRejectedEmail({
           </td>
         </tr>
       </table>
-
-
+    </div>
   `;
 
   return await sendEmail({
@@ -357,7 +343,7 @@ export async function sendDepositSuccessEmail({
   reference,
   date,
 }) {
-  const subject = "Deposit Successful - Prime Chain";
+  const subject = "Deposit Successful - StakeWiseAI";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -367,7 +353,7 @@ export async function sendDepositSuccessEmail({
 
       <p style="font-size:16px; color:#555; line-height:1.6;">
         Hi <strong>${name}</strong>, your deposit has been
-        <strong>successfully credited</strong> to your Prime Chain account.
+        <strong>successfully credited</strong> to your StakeWiseAI account.
       </p>
 
       <table style="width:100%; border-collapse: collapse; margin:22px 0;">
@@ -404,8 +390,6 @@ export async function sendDepositSuccessEmail({
       <p style="font-size:14px; color:#666;">
         Your funds are now available for investment.
       </p>
-
-
     </div>
   `;
 
@@ -424,7 +408,7 @@ export async function sendDepositRejectedEmail({
   reference,
   date,
 }) {
-  const subject = "Deposit Failed - Prime Chain";
+  const subject = "Deposit Failed - StakeWiseAI";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -470,9 +454,6 @@ export async function sendDepositRejectedEmail({
       <p style="font-size:14px; color:#666;">
         No funds were credited to your account.
       </p>
-
-     
-      
     </div>
   `;
 
