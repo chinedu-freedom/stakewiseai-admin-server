@@ -297,7 +297,7 @@ export const deleteInvestmentPlanController = async (req, res) => {
     return sendResponse(
       res,
       true,
-      "Investment plan and associated references cleaned up successfully",
+      "Investment plan deleted successfully",
       200
     );
   } catch (error) {
