@@ -268,16 +268,46 @@ export const deleteInvestmentPlanController = async (req, res) => {
       return sendResponse(res, false, "Investment plan not found", 404);
     }
 
+    // 🔍 Check for existing references (e.g., userInvestments)
+    // Sanity prevents deletion if other documents reference this plan.
+    // We will find all documents referencing this ID and unset the reference.
+    const references = await client.fetch(
+      `*[references($id)]{ _id, _type }`,
+      { id }
+    );
+
+    if (references.length > 0) {
+      console.log(`Found ${references.length} references to plan ${id}. Cleaning up...`);
+      
+      const transaction = client.transaction();
+      
+      references.forEach((ref) => {
+        // For userInvestments, we might want to unset the plan reference 
+        // or handle it based on your business logic. 
+        // Here we unset the field that points to the plan.
+        transaction.patch(ref._id, (p) => p.unset(['plan']));
+      });
+
+      await transaction.commit();
+    }
+
+    // Now delete the plan
     await client.delete(id);
 
     return sendResponse(
       res,
       true,
-      "Investment plan deleted successfully",
+      "Investment plan and associated references cleaned up successfully",
       200
     );
   } catch (error) {
     console.error("DELETE_INVESTMENT_ERROR:", error);
+    
+    // Check if it's a Sanity referential integrity error
+    if (error.message?.includes("cannot be deleted as there are references")) {
+       return sendResponse(res, false, "Cannot delete plan: It is still being referenced by active investments. Please archive or remove those investments first.", 409);
+    }
+
     return sendResponse(res, false, "Failed to delete investment plan", 500);
   }
 };
