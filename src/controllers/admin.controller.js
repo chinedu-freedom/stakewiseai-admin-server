@@ -253,3 +253,46 @@ export const getDashboardStatsController = async (req, res) => {
   }
 };
 
+export const getReferralConfigController = asyncHandler(async (req, res) => {
+  const query = `*[_type == "referralConfig"][0]`;
+  let config = await client.fetch(query);
+
+  if (!config) {
+    // Return default values if not set yet
+    config = {
+      level1: 10,
+      level2: 5,
+      level3: 1,
+    };
+  }
+
+  return sendResponse(res, true, "Referral configuration fetched successfully", 200, config);
+});
+
+export const updateReferralConfigController = asyncHandler(async (req, res) => {
+  const { level1, level2, level3 } = req.body;
+
+  if (level1 === undefined || level2 === undefined || level3 === undefined) {
+    return sendResponse(res, false, "All levels are required", 400);
+  }
+
+  // Find or create the singleton config document
+  const existingConfig = await client.fetch(`*[_type == "referralConfig"][0]`);
+  
+  const configData = {
+    _type: "referralConfig",
+    level1: Number(level1),
+    level2: Number(level2),
+    level3: Number(level3),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (existingConfig) {
+    await client.patch(existingConfig._id).set(configData).commit();
+  } else {
+    await client.create(configData);
+  }
+
+  return sendResponse(res, true, "Referral configuration updated successfully", 200, configData);
+});
+

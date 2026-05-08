@@ -118,10 +118,10 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
     return sendResponse(res, false, "Withdrawal not found", 404);
   }
 
-  // Support both frontend values (successful/failed) and schema values (approved/rejected)
-  const normalizedStatus = status === "approved" ? "successful" : status === "rejected" ? "failed" : status;
+  // Map incoming frontend status to Sanity schema values (approved/rejected)
+  const normalizedStatus = (status === "successful" || status === "approved") ? "approved" : (status === "failed" || status === "rejected") ? "rejected" : status;
 
-  if (withdrawal.status === "successful" || withdrawal.status === "approved") {
+  if (withdrawal.status === "approved" || withdrawal.status === "successful") {
     return sendResponse(
       res,
       false,
@@ -133,7 +133,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
   const userId = withdrawal.user?._id;
   const amount = withdrawal.amount;
 
-  if (normalizedStatus === "successful" && userId) {
+  if (normalizedStatus === "approved" && userId) {
     await client
       .transaction()
       .patch(userId, {
@@ -158,12 +158,13 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
     }
   }
 
-  if (normalizedStatus === "failed" && userId) {
+  if (normalizedStatus === "rejected" && userId) {
     await client
       .transaction()
       .patch(userId, {
         inc: {
           reservedProfit: -amount,
+          availableProfit: amount, // ✅ RETURN the funds to the user
         },
       })
       .commit();
@@ -191,7 +192,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
     })
     .commit();
 
-  return sendResponse(res, true, "Withdrawal status updated successfully", 200);
+  return sendResponse(res, true, `Withdrawal status updated to ${normalizedStatus} successfully`, 200);
 });
 
 export const deleteWithdrawalController = asyncHandler(async (req, res) => {
