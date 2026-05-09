@@ -12,6 +12,7 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
     maxDeposit,
     dailyProfit,
     contractDuration,
+    planLevel,
     isFixedDeposit = false,
     status,
   } = req.body;
@@ -28,6 +29,8 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
     errors.push("Daily profit must be ≥ 0");
   if (contractDuration === undefined || contractDuration < 1)
     errors.push("Contract duration must be at least 1 day");
+  if (planLevel === undefined || planLevel < 1)
+    errors.push("Plan level must be at least 1");
   if (!status) errors.push("Status is required");
 
   // Logical validation
@@ -62,6 +65,7 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
     maxDeposit,
     dailyProfit,
     contractDuration,
+    planLevel: Number(planLevel),
     isFixedDeposit,
     status,
     createdAt: now,
@@ -89,6 +93,7 @@ export const getInvestmentPlansController = asyncHandler(async (req, res) => {
       maxDeposit,
       dailyProfit,
       contractDuration,
+      planLevel,
       isFixedDeposit,
       status,
       createdAt,
@@ -131,6 +136,7 @@ export const getInvestmentPlanByIdController = async (req, res) => {
         maxDeposit,
         dailyProfit,
         contractDuration,
+        planLevel,
         isFixedDeposit,
         status,
         createdAt,
@@ -178,6 +184,7 @@ export const updateInvestmentPlanController = asyncHandler(async (req, res) => {
     maxDeposit,
     dailyProfit,
     contractDuration,
+    planLevel,
     isFixedDeposit,
     status,
   } = req.body;
@@ -196,6 +203,8 @@ export const updateInvestmentPlanController = asyncHandler(async (req, res) => {
     contractDuration !== undefined
       ? Number(contractDuration)
       : existing.contractDuration;
+  const finalLevel = 
+    planLevel !== undefined ? Number(planLevel) : existing.planLevel;
   const finalIsFixedDeposit =
     isFixedDeposit !== undefined
       ? Boolean(isFixedDeposit)
@@ -220,6 +229,9 @@ export const updateInvestmentPlanController = asyncHandler(async (req, res) => {
   if (finalDuration < 1)
     errors.push("Contract duration must be at least 1 day");
 
+  if (finalLevel < 1)
+    errors.push("Plan level must be at least 1");
+
   if (!["active", "inactive"].includes(finalStatus)) {
     errors.push(`Invalid status: ${finalStatus}`);
   }
@@ -237,6 +249,7 @@ export const updateInvestmentPlanController = asyncHandler(async (req, res) => {
       maxDeposit: finalMaxDeposit,
       dailyProfit: finalDailyProfit,
       contractDuration: finalDuration,
+      planLevel: finalLevel,
       isFixedDeposit: finalIsFixedDeposit,
       status: finalStatus,
       updatedAt: new Date().toISOString(),
