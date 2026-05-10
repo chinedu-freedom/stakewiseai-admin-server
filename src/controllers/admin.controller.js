@@ -234,6 +234,9 @@ export const getDashboardStatsController = async (req, res) => {
       0
     );
 
+    const pendingDepositsCount = pendingDeposits.length;
+    const pendingWithdrawalsCount = pendingWithdrawals.length;
+
     const totalActivities = await client.fetch(`count(*[_type == "userActivity"])`);
 
     const activitiesQuery = `*[_type == "userActivity"] | order(timestamp desc) [${start}...${end}] {
@@ -259,6 +262,8 @@ export const getDashboardStatsController = async (req, res) => {
         withdrawals: totalWithdrawalAmount,
         pendingWithdrawals: totalPendingWithdrawalAmount,
         pendingDeposits: totalPendingDepositAmount,
+        pendingWithdrawalsCount,
+        pendingDepositsCount,
       },
       activities,
       meta: buildPaginationMeta(totalActivities, page, limit),
