@@ -192,7 +192,7 @@ export const getDashboardStatsController = async (req, res) => {
   try {
     const { page, limit, start, end } = getPaginationParams(req, 5);
 
-    const [totalUsers, investments, deposits, withdrawals] = await Promise.all([
+    const [totalUsers, investments, deposits, approvedWithdrawals, pendingWithdrawals ] = await Promise.all([
       client.fetch(
         `count(*[_type == "user" && role == "user" && accountStatus == "active"])`
       ),
@@ -204,6 +204,9 @@ export const getDashboardStatsController = async (req, res) => {
       ),
       client.fetch(
         `*[_type == "withdrawal" && status == "approved" && user->accountStatus == "active"]{amount}`
+      ),
+      client.fetch(
+        `*[_type == "withdrawal" && status == "pending" && user->accountStatus == "active"]{amount}`
       ),
     ]);
 
