@@ -139,6 +139,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       .patch(userId, {
         inc: {
           reservedProfit: -amount,
+          totalProfit: -amount,
         },
       })
       .commit();
