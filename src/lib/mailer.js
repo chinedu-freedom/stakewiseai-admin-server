@@ -348,12 +348,20 @@ export async function sendDepositSuccessEmail({
   const content = `
     <div style="text-align:center; padding:30px 0;">
       <h2 style="color:#0b132b; margin-bottom:12px;">
-        Deposit Confirmed
+        Deposit Completed
       </h2>
 
-      <p style="font-size:16px; color:#555; line-height:1.6;">
-        Hi <strong>${name}</strong>, your deposit has been
-        <strong>successfully credited</strong> to your StakeWiseAI account.
+      <p style="font-size:16px; color:#555; line-height:1.6; margin-bottom: 12px;">
+        Hi <strong>${name}</strong>,
+      </p>
+      
+      <p style="font-size:16px; color:#555; line-height:1.6; margin-bottom: 12px;">
+        Your deposit request of <strong>$${amount}</strong> has been successfully confirmed and automatically credited to your account.
+      </p>
+      
+      <p style="font-size:16px; color:#555; line-height:1.6; margin-bottom: 24px;">
+        Kindly log in to your account to confirm the transaction.<br>
+        Thank you for choosing Stake Wise AI Platform.
       </p>
 
       <table style="width:100%; border-collapse: collapse; margin:22px 0;">
