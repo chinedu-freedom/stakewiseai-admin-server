@@ -203,7 +203,7 @@ export const getDashboardStatsController = async (req, res) => {
         `*[_type == "deposit" && status == "successful" && user->accountStatus == "active"]{amount}`
       ),
       client.fetch(
-        `*[_type == "withdrawal" && status == "successful" && user->accountStatus == "active"]{amount}`
+        `*[_type == "withdrawal" && status == "approved" && user->accountStatus == "active"]{amount}`
       ),
     ]);
 
