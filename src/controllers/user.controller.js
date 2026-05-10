@@ -1,4 +1,5 @@
 import { client } from "../lib/sanity.js";
+import { generateToken } from "../lib/auth.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { sendResponse } from "../lib/response.js";
 import { getPaginationParams, buildPaginationMeta } from "../lib/pagination.js";
@@ -271,6 +272,30 @@ export const getUserActivitiesController = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Error fetching user activities:", error);
     return sendResponse(res, false, "Failed to fetch user activities", 500);
+  }
+});
+
+// POST — Generate a login token for a specific user to impersonate them
+export const impersonateUserController = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) return sendResponse(res, false, "User ID is required", 400);
+
+  try {
+    const user = await client.fetch(
+      `*[_type == "user" && role == "user" && _id == $id && (!defined(isDeleted) || isDeleted == false)][0]`,
+      { id }
+    );
+
+    if (!user) return sendResponse(res, false, "User not found or is deleted", 404);
+
+    // Generate a token for this user
+    const token = generateToken(user._id, user.role, { expiresIn: "2h" });
+
+    return sendResponse(res, true, "Impersonation token generated", 200, { token });
+  } catch (error) {
+    console.error("Error generating impersonation token:", error);
+    return sendResponse(res, false, "Failed to generate impersonation token", 500);
   }
 });
 
