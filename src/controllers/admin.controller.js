@@ -192,7 +192,7 @@ export const getDashboardStatsController = async (req, res) => {
   try {
     const { page, limit, start, end } = getPaginationParams(req, 5);
 
-    const [totalUsers, investments, deposits, approvedWithdrawals, pendingWithdrawals ] = await Promise.all([
+    const [totalUsers, investments, deposits, pendingDeposits, approvedWithdrawals, pendingWithdrawals ] = await Promise.all([
       client.fetch(
         `count(*[_type == "user" && role == "user" && accountStatus == "active"])`
       ),
@@ -201,6 +201,9 @@ export const getDashboardStatsController = async (req, res) => {
       ),
       client.fetch(
         `*[_type == "deposit" && status == "successful" && user->accountStatus == "active"]{amount}`
+      ),
+      client.fetch(
+        `*[_type == "deposit" && status == "pending" && user->accountStatus == "active"]{amount}`
       ),
       client.fetch(
         `*[_type == "withdrawal" && status == "approved" && user->accountStatus == "active"]{amount}`
@@ -218,8 +221,16 @@ export const getDashboardStatsController = async (req, res) => {
       (sum, d) => sum + Number(d.amount || 0),
       0
     );
-    const totalWithdrawalAmount = withdrawals.reduce(
+    const totalWithdrawalAmount = approvedWithdrawals.reduce(
       (sum, w) => sum + Number(w.amount || 0),
+      0
+    );
+    const totalPendingWithdrawalAmount = pendingWithdrawals.reduce(
+      (sum, w) => sum + Number(w.amount || 0),
+      0
+    );
+    const totalPendingDepositAmount = pendingDeposits.reduce(
+      (sum, d) => sum + Number(d.amount || 0),
       0
     );
 
@@ -246,6 +257,8 @@ export const getDashboardStatsController = async (req, res) => {
         investments: totalInvestmentAmount,
         deposits: totalDepositAmount,
         withdrawals: totalWithdrawalAmount,
+        pendingWithdrawals: totalPendingWithdrawalAmount,
+        pendingDeposits: totalPendingDepositAmount,
       },
       activities,
       meta: buildPaginationMeta(totalActivities, page, limit),
