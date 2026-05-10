@@ -61,6 +61,7 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
     emailVerified,
     image,
     referralCode,
+    lastKnownIp,
     createdAt,
     updatedAt,
   }`,
@@ -245,6 +246,31 @@ export const deleteUserController = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Error soft-deleting user:", error);
     return sendResponse(res, false, "Failed to soft-delete user", 500);
+  }
+});
+
+// GET — Fetch all activities/access logs for a specific user
+export const getUserActivitiesController = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) return sendResponse(res, false, "User ID is required", 400);
+
+  try {
+    const query = `*[_type == "userActivity" && user._ref == $id] | order(timestamp desc) {
+      _id,
+      action,
+      details,
+      status,
+      timestamp,
+      ipAddress,
+      userAgent
+    }`;
+    
+    const activities = await client.fetch(query, { id });
+    return sendResponse(res, true, "User activities fetched successfully", 200, activities);
+  } catch (error) {
+    console.error("Error fetching user activities:", error);
+    return sendResponse(res, false, "Failed to fetch user activities", 500);
   }
 });
 
