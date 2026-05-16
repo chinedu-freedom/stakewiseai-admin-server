@@ -108,7 +108,7 @@ export async function sendPasswordChangeConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@stakewiseai.vip"
+        <a href="mailto:support@satrixai.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
@@ -142,7 +142,7 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@stakewiseai.vip"
+        <a href="mailto:support@satrixai.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
