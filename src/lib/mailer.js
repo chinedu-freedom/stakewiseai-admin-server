@@ -108,7 +108,7 @@ export async function sendPasswordChangeConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@satrixai.com"
+        <a href="mailto:stakewiseai@gmail.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
@@ -142,7 +142,7 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:support@satrixai.com"
+        <a href="mailto:stakewiseai@gmail.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
@@ -496,14 +496,7 @@ export async function sendWelcomeEmail(email, name) {
         </ul>
       </div>
 
-      <div style="margin:30px 0;">
-        <a href="${process.env.FRONTEND_URL}"
-          style="background:#0d9488; color:#ffffff; padding:14px 32px;
-                 border-radius:6px; text-decoration:none; font-weight:bold;
-                 display:inline-block;">
-          Go to Dashboard
-        </a>
-      </div>
+    
       
       <p style="font-size:14px; color:#666;">
         For security reasons, please ensure you never share your login credentials with anyone.
