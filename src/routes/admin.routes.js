@@ -5,7 +5,9 @@ import {
   getUserProfileController, 
   getDashboardStatsController,
   getReferralConfigController,
-  updateReferralConfigController
+  updateReferralConfigController,
+  getUserInvestmentsController,
+  deleteUserInvestmentController
 } from "../controllers/admin.controller.js";
 import { upload } from "../middlewares/upload.js";
 import { withAdminAuth } from "../middlewares/authGuard.js";
@@ -19,5 +21,8 @@ router.get("/dashboard-stats", withAdminAuth, getDashboardStatsController);
 
 router.get("/referral-config", withAdminAuth, getReferralConfigController);
 router.patch("/referral-config", withAdminAuth, updateReferralConfigController);
+
+router.get("/user-investments", withAdminAuth, getUserInvestmentsController);
+router.delete("/user-investments/:id", withAdminAuth, deleteUserInvestmentController);
 
 export default router;

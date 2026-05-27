@@ -197,16 +197,16 @@ export const getDashboardStatsController = async (req, res) => {
         `count(*[_type == "user" && role == "user" && accountStatus == "active"])`
       ),
       client.fetch(
-        `*[_type == "userInvestment" && user->accountStatus == "active"]{amount}`
+        `*[_type == "userInvestment" && user->accountStatus == "active"]{amount, _createdAt}`
       ),
       client.fetch(
-        `*[_type == "deposit" && status == "successful" && user->accountStatus == "active"]{amount}`
+        `*[_type == "deposit" && status == "successful" && user->accountStatus == "active"]{amount, fundedAt, _createdAt}`
       ),
       client.fetch(
         `*[_type == "deposit" && status == "pending" && user->accountStatus == "active"]{amount}`
       ),
       client.fetch(
-        `*[_type == "withdrawal" && status == "approved" && user->accountStatus == "active"]{amount}`
+        `*[_type == "withdrawal" && status == "approved" && user->accountStatus == "active"]{amount, approvedAt, _createdAt}`
       ),
       client.fetch(
         `*[_type == "withdrawal" && status == "pending" && user->accountStatus == "active"]{amount}`
@@ -237,6 +237,34 @@ export const getDashboardStatsController = async (req, res) => {
     const pendingDepositsCount = pendingDeposits.length;
     const pendingWithdrawalsCount = pendingWithdrawals.length;
 
+    // Generate Chart Data (Last 6 months)
+    const chartDataMap = new Map();
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = d.toLocaleString('en-US', { month: 'short' });
+      const year = d.getFullYear().toString().slice(2);
+      chartDataMap.set(`${monthName} '${year}`, { name: `${monthName} '${year}`, value: 0 });
+    }
+
+    const processItemForChart = (item, dateField) => {
+      const dateVal = item[dateField] || item._createdAt;
+      if (!dateVal) return;
+      const d = new Date(dateVal);
+      const monthName = d.toLocaleString('en-US', { month: 'short' });
+      const year = d.getFullYear().toString().slice(2);
+      const key = `${monthName} '${year}`;
+      if (chartDataMap.has(key)) {
+        chartDataMap.get(key).value += Number(item.amount || 0);
+      }
+    };
+
+    deposits.forEach(d => processItemForChart(d, 'fundedAt'));
+    approvedWithdrawals.forEach(w => processItemForChart(w, 'approvedAt'));
+    investments.forEach(i => processItemForChart(i, '_createdAt'));
+
+    const chartData = Array.from(chartDataMap.values());
+
     const totalActivities = await client.fetch(`count(*[_type == "userActivity"])`);
 
     const activitiesQuery = `*[_type == "userActivity"] | order(timestamp desc) [${start}...${end}] {
@@ -265,6 +293,7 @@ export const getDashboardStatsController = async (req, res) => {
         pendingWithdrawalsCount,
         pendingDepositsCount,
       },
+      chartData,
       activities,
       meta: buildPaginationMeta(totalActivities, page, limit),
     });
@@ -315,5 +344,69 @@ export const updateReferralConfigController = asyncHandler(async (req, res) => {
   }
 
   return sendResponse(res, true, "Referral configuration updated successfully", 200, configData);
+});
+
+export const getUserInvestmentsController = asyncHandler(async (req, res) => {
+  const { page, limit, start, end } = getPaginationParams(req);
+
+  const query = `*[_type == "userInvestment"]
+    | order(createdAt desc)
+    [$start...$end]{
+      _id,
+      amount,
+      profitEarned,
+      totalWithdrawn,
+      status,
+      maturityStatus,
+      isFixedDeposit,
+      startDate,
+      endDate,
+      lastCreditedAt,
+      createdAt,
+      plan->{
+        _id,
+        title,
+        dailyProfit,
+        contractDuration,
+        roiPercent
+      },
+      user->{
+        _id,
+        username,
+        email,
+        phoneNumber
+      }
+    }`;
+
+  const countQuery = `count(*[_type == "userInvestment"])`;
+
+  const [investments, total] = await Promise.all([
+    client.fetch(query, { start, end }),
+    client.fetch(countQuery),
+  ]);
+
+  const pagination = buildPaginationMeta(total, page, limit);
+
+  return sendResponse(res, true, "User investments fetched successfully", 200, {
+    records: investments,
+    pagination,
+  });
+});
+
+export const deleteUserInvestmentController = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) return sendResponse(res, false, "Investment ID is required", 400);
+
+  const existing = await client.fetch(
+    `*[_type == "userInvestment" && _id == $id][0]`,
+    { id }
+  );
+
+  if (!existing) return sendResponse(res, false, "Investment not found", 404);
+
+  await client.delete(id);
+
+  return sendResponse(res, true, "Investment deleted successfully", 200);
 });
 
