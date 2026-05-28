@@ -2,7 +2,7 @@ import { emailTemplate } from "../../template.js";
 import { sendEmail } from "../../zohoMailer.js";
 
 export async function sendVerificationEmail({ email, name, token }) {
-  const subject = "Verify Your Email - StakeWiseAI";
+  const subject = "Verify Your Email - SatrixAi";
 
   const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
 
@@ -13,7 +13,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </h2>
 
       <p style="color:#444; font-size:16px; line-height:1.6;">
-        Welcome to <strong>StakeWiseAI</strong> — your gateway to secure and smarter investing.
+        Welcome to <strong>SatrixAi</strong> — your gateway to secure and smarter investing.
         To activate your account, please verify your email. It only takes a few seconds!
       </p>
 
@@ -27,7 +27,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </div>
       
       <p style="margin-top: 20px; color: #666; font-size: 14px;">
-        By verifying, you'll join <strong>120,000+ active investors</strong> already diversifying with StakeWiseAI.  
+        By verifying, you'll join <strong>120,000+ active investors</strong> already diversifying with SatrixAi.  
         Don't miss out on smarter opportunities.
       </p>
       
@@ -36,7 +36,7 @@ export async function sendVerificationEmail({ email, name, token }) {
       </p>
 
       <p style="font-size:13px; color:#888; margin-top:20px;">
-        If you did not create a StakeWiseAI account, you can safely ignore this email.
+        If you did not create a SatrixAi account, you can safely ignore this email.
       </p>
     </div>
   `;
@@ -49,14 +49,14 @@ export async function sendVerificationEmail({ email, name, token }) {
 }
 
 export async function sendPasswordResetEmail(email, name, otp) {
-  const subject = "Your OTP Code - StakeWiseAI";
+  const subject = "Your OTP Code - SatrixAi";
 
   const content = `
     <p>Hi <strong>${name}</strong>,</p>
 
     <p>
       You recently requested to reset your password for your
-      <strong>StakeWiseAI</strong> account. Please use the OTP code below
+      <strong>SatrixAi</strong> account. Please use the OTP code below
       to complete the process:
     </p>
 
@@ -108,7 +108,7 @@ export async function sendPasswordChangeConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:stakewiseai@gmail.com"
+        <a href="mailto:SatrixAi@gmail.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
@@ -142,7 +142,7 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 
       <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
         If you did not perform this action, please contact our support team
-        <a href="mailto:stakewiseai@gmail.com"
+        <a href="mailto:SatrixAi@gmail.com"
            style="color:#0b132b; font-weight:bold; text-decoration:none;">
           immediately
         </a>.
@@ -162,7 +162,7 @@ export async function sendPasswordResetConfirmationEmail(email, name) {
 }
 
 export async function sendKycApprovedEmail(email, name) {
-  const subject = "Your KYC Has Been Approved - StakeWiseAI";
+  const subject = "Your KYC Has Been Approved - SatrixAi";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -172,7 +172,7 @@ export async function sendKycApprovedEmail(email, name) {
       
       <p style="color:#555; font-size:16px; line-height:1.6;">
         Congratulations! Your KYC submission has been <strong>approved</strong>.  
-        You now have full access to all StakeWiseAI features.
+        You now have full access to all SatrixAi features.
       </p>
     </div>
   `;
@@ -185,7 +185,7 @@ export async function sendKycApprovedEmail(email, name) {
 }
 
 export async function sendKycRejectedEmail(email, name, reasons) {
-  const subject = "Your KYC Has Been Rejected - StakeWiseAI";
+  const subject = "Your KYC Has Been Rejected - SatrixAi";
 
   const reasonsList = Array.isArray(reasons) 
     ? reasons.map(reason => `<li>${reason}</li>`).join("")
@@ -226,7 +226,7 @@ export async function sendWithdrawalSuccessEmail({
   walletAddress,
   date,
 }) {
-  const subject = "Withdrawal Successful - StakeWiseAI";
+  const subject = "Withdrawal Successful - SatrixAi";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -284,7 +284,7 @@ export async function sendWithdrawalRejectedEmail({
   reason,
   date,
 }) {
-  const subject = "Withdrawal Rejected - StakeWiseAI";
+  const subject = "Withdrawal Rejected - SatrixAi";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -343,7 +343,7 @@ export async function sendDepositSuccessEmail({
   reference,
   date,
 }) {
-  const subject = "Deposit Successful - StakeWiseAI";
+  const subject = "Deposit Successful - SatrixAi";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -361,7 +361,7 @@ export async function sendDepositSuccessEmail({
       
       <p style="font-size:16px; color:#555; line-height:1.6; margin-bottom: 24px;">
         Kindly log in to your account to confirm the transaction.<br>
-        Thank you for choosing Stake Wise AI Platform.
+        Thank you for choosing SatrixAi Platform.
       </p>
 
       <table style="width:100%; border-collapse: collapse; margin:22px 0;">
@@ -416,7 +416,7 @@ export async function sendDepositRejectedEmail({
   reference,
   date,
 }) {
-  const subject = "Deposit Failed - StakeWiseAI";
+  const subject = "Deposit Failed - SatrixAi";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -473,7 +473,7 @@ export async function sendDepositRejectedEmail({
 }
 
 export async function sendWelcomeEmail(email, name) {
-  const subject = "Welcome to StakeWiseAI Admin";
+  const subject = "Welcome to SatrixAi Admin";
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
@@ -483,7 +483,7 @@ export async function sendWelcomeEmail(email, name) {
       
       <p style="color:#444; font-size:16px; line-height:1.6;">
         Your admin account has been successfully created. You now have access to the 
-        <strong>StakeWiseAI Management Console</strong>.
+        <strong>SatrixAi Management Console</strong>.
       </p>
 
       <div style="margin:30px 0; background: #f8fafc; padding: 20px; border-radius: 8px; display: inline-block; text-align: left;">
