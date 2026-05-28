@@ -348,8 +348,12 @@ export const updateReferralConfigController = asyncHandler(async (req, res) => {
 
 export const getUserInvestmentsController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
+  const search = req.query.search?.trim();
 
-  const query = `*[_type == "userInvestment"]
+  const searchFilter = search ? ` && (_id match $search || status match $search || plan->title match $search || user->username match $search || user->email match $search)` : "";
+  const searchParam = search ? `${search}*` : "";
+
+  const query = `*[_type == "userInvestment"${searchFilter}]
     | order(createdAt desc)
     [$start...$end]{
       _id,
@@ -378,11 +382,11 @@ export const getUserInvestmentsController = asyncHandler(async (req, res) => {
       }
     }`;
 
-  const countQuery = `count(*[_type == "userInvestment"])`;
+  const countQuery = `count(*[_type == "userInvestment"${searchFilter}])`;
 
   const [investments, total] = await Promise.all([
-    client.fetch(query, { start, end }),
-    client.fetch(countQuery),
+    client.fetch(query, { start, end, search: searchParam }),
+    client.fetch(countQuery, { search: searchParam }),
   ]);
 
   const pagination = buildPaginationMeta(total, page, limit);

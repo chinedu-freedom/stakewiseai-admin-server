@@ -81,12 +81,15 @@ export const createInvestmentPlanController = asyncHandler(async (req, res) => {
   );
 });
 
-// GET ALL INVESTMENT PLANS (PAGINATED)
 export const getInvestmentPlansController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
+  const search = req.query.search?.trim();
+
+  const searchFilter = search ? ` && (title match $search)` : "";
+  const searchParam = search ? `${search}*` : "";
 
   const query = `
-    *[_type == "plan"] | order(createdAt desc) [$start...$end] {
+    *[_type == "plan"${searchFilter}] | order(createdAt desc) [$start...$end] {
       _id,
       title,
       minDeposit,
@@ -101,11 +104,11 @@ export const getInvestmentPlansController = asyncHandler(async (req, res) => {
     }
   `;
 
-  const countQuery = `count(*[_type == "plan"])`;
+  const countQuery = `count(*[_type == "plan"${searchFilter}])`;
 
   const [plans, total] = await Promise.all([
-    client.fetch(query, { start, end }),
-    client.fetch(countQuery),
+    client.fetch(query, { start, end, search: searchParam }),
+    client.fetch(countQuery, { search: searchParam }),
   ]);
 
   const meta = buildPaginationMeta(total, page, limit);

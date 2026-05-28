@@ -6,11 +6,17 @@ import { getPaginationParams, buildPaginationMeta } from "../lib/pagination.js";
 
 export const getUsersController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
+  const search = req.query.search?.trim();
+
+  // GROQ case-insensitive search using the match operator
+  const searchFilter = search ? ` && (username match $search || email match $search || phoneNumber match $search)` : "";
+  const searchParam = search ? `${search}*` : ""; // Wildcard match
 
   const query = `*[
     _type == "user" && 
     role == "user" && 
     (!defined(isDeleted) || !isDeleted)
+    ${searchFilter}
   ]
   | order(createdAt desc)
   [$start...$end]{
@@ -28,11 +34,12 @@ export const getUsersController = asyncHandler(async (req, res) => {
     _type == "user" && 
     role == "user" && 
     (!defined(isDeleted) || !isDeleted)
+    ${searchFilter}
   ])`;
 
   const [users, total] = await Promise.all([
-    client.fetch(query, { start, end }),
-    client.fetch(totalQuery),
+    client.fetch(query, { start, end, search: searchParam }),
+    client.fetch(totalQuery, { search: searchParam }),
   ]);
 
   const pagination = buildPaginationMeta(total, page, limit);

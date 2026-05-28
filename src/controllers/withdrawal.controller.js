@@ -9,9 +9,13 @@ import {
 
 export const getWithdrawalsController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
+  const search = req.query.search?.trim();
+
+  const searchFilter = search ? ` && (_id match $search || status match $search || user->username match $search || user->email match $search || walletAddress match $search)` : "";
+  const searchParam = search ? `${search}*` : "";
 
   const query = `
-    *[_type == "withdrawal"]
+    *[_type == "withdrawal"${searchFilter}]
     | order(requestedAt desc)
     [$start...$end]{
       _id,
@@ -29,8 +33,8 @@ export const getWithdrawalsController = asyncHandler(async (req, res) => {
   `;
 
   const [withdrawals, total] = await Promise.all([
-    client.fetch(query, { start, end }),
-    client.fetch(`count(*[_type == "withdrawal"])`),
+    client.fetch(query, { start, end, search: searchParam }),
+    client.fetch(`count(*[_type == "withdrawal"${searchFilter}])`, { search: searchParam }),
   ]);
 
   const pagination = buildPaginationMeta(total, page, limit);
