@@ -20,6 +20,8 @@ export const getWithdrawalsController = asyncHandler(async (req, res) => {
     [$start...$end]{
       _id,
       amount,
+      fee,
+      netAmount,
       requestedAt,
       updatedAt,
       status,
@@ -56,6 +58,8 @@ export const getWithdrawalController = asyncHandler(async (req, res) => {
     `*[_type == "withdrawal" && _id == $id][0]{
       _id,
       amount,
+      fee,
+      netAmount,
       status,
       requestedAt,
       updatedAt,
@@ -103,6 +107,8 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
       _id,
       status,
       amount,
+      fee,
+      netAmount,
       walletAddress,
       crypto,
       emailSuccessSent,
@@ -154,7 +160,7 @@ export const updateWithdrawalStatusController = asyncHandler(async (req, res) =>
         email: withdrawal.user.email,
         name: withdrawal.user.username.split(" ")[0],
         crypto: withdrawal.crypto || "USDT",
-        amount,
+        amount: withdrawal.netAmount || amount,
         walletAddress: withdrawal.walletAddress,
         date: new Date(),
       });
