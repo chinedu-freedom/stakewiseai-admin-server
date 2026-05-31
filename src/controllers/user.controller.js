@@ -146,7 +146,7 @@ export const updateUserController = asyncHandler(async (req, res) => {
     }
 
     // =========================
-    // ACCOUNT BALANCE (INCREMENT)
+    // ACCOUNT BALANCE (ADJUSTMENT)
     // =========================
     if (typeof accountBalance !== "undefined") {
       if (typeof accountBalance !== "number" || isNaN(accountBalance)) {
@@ -158,19 +158,21 @@ export const updateUserController = asyncHandler(async (req, res) => {
         );
       }
 
-      if (accountBalance <= 0) {
-        return sendResponse(
-          res,
-          false,
-          "Amount must be greater than 0",
-          400
-        );
+      if (accountBalance !== 0) {
+        const currentBalance = Number(currentUser.accountBalance || 0);
+        const newBalance = currentBalance + accountBalance;
+
+        if (newBalance < 0) {
+          return sendResponse(
+            res,
+            false,
+            "Resulting balance cannot be less than 0",
+            400
+          );
+        }
+
+        updateFields.accountBalance = newBalance;
       }
-
-      const currentBalance = Number(currentUser.accountBalance || 0);
-      const newBalance = currentBalance + accountBalance;
-
-      updateFields.accountBalance = newBalance;
     }
 
     // =========================
