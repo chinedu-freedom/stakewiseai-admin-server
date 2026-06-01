@@ -66,6 +66,10 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
     phoneNumber,
     accountStatus,
     accountBalance,
+    totalProfit,
+    availableProfit,
+    reservedProfit,
+    totalInvestment,
     emailVerified,
     image,
     referralCode,
@@ -89,7 +93,7 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
 // PATCH — Admin update user
 export const updateUserController = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { accountStatus, accountBalance, emailVerified } = req.body;
+  const { accountStatus, accountBalance, totalProfit, emailVerified } = req.body;
 
   if (!id) return sendResponse(res, false, "User ID is required", 400);
 
@@ -98,6 +102,8 @@ export const updateUserController = asyncHandler(async (req, res) => {
       `*[_type == "user" && role == "user" && _id == $id][0]{ 
         accountStatus, 
         accountBalance, 
+        totalProfit,
+        availableProfit,
         emailVerified 
       }`,
       { id }
@@ -172,6 +178,48 @@ export const updateUserController = asyncHandler(async (req, res) => {
         }
 
         updateFields.accountBalance = newBalance;
+      }
+    }
+
+    // =========================
+    // TOTAL PROFIT (ADJUSTMENT)
+    // =========================
+    if (typeof totalProfit !== "undefined") {
+      if (typeof totalProfit !== "number" || isNaN(totalProfit)) {
+        return sendResponse(
+          res,
+          false,
+          "Total profit must be a valid number",
+          400
+        );
+      }
+
+      if (totalProfit !== 0) {
+        const currentProfit = Number(currentUser.totalProfit || 0);
+        const currentAvailable = Number(currentUser.availableProfit || 0);
+        
+        const newTotalProfit = currentProfit + totalProfit;
+        const newAvailableProfit = currentAvailable + totalProfit;
+
+        if (newTotalProfit < 0) {
+          return sendResponse(
+            res,
+            false,
+            "Resulting total profit cannot be less than 0",
+            400
+          );
+        }
+        if (newAvailableProfit < 0) {
+          return sendResponse(
+            res,
+            false,
+            "Resulting available profit cannot be less than 0",
+            400
+          );
+        }
+
+        updateFields.totalProfit = newTotalProfit;
+        updateFields.availableProfit = newAvailableProfit;
       }
     }
 
