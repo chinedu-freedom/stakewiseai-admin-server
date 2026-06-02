@@ -3,6 +3,9 @@ import { generateToken } from "../lib/auth.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { sendResponse } from "../lib/response.js";
 import { getPaginationParams, buildPaginationMeta } from "../lib/pagination.js";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { sendAdminPasswordResetEmail } from "../lib/mailer.js";
 
 export const getUsersController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
@@ -356,3 +359,36 @@ export const impersonateUserController = asyncHandler(async (req, res) => {
   }
 });
 
+// POST — Admin reset user password
+export const resetUserPasswordController = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) return sendResponse(res, false, "User ID is required", 400);
+
+  try {
+    const user = await client.fetch(
+      `*[_type == "user" && role == "user" && _id == $id && (!defined(isDeleted) || isDeleted == false)][0]`,
+      { id }
+    );
+
+    if (!user) return sendResponse(res, false, "User not found or is deleted", 404);
+
+    // Generate random 8-character password
+    const newPassword = crypto.randomBytes(4).toString("hex");
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update user in sanity
+    await client.patch(id).set({ password: hashedPassword }).commit();
+
+    // Send email
+    if (user.email) {
+      await sendAdminPasswordResetEmail(user.email, user.username || "User", newPassword);
+    }
+
+    return sendResponse(res, true, "Password reset successfully. An email has been sent to the user.", 200);
+  } catch (error) {
+    console.error("Error resetting user password:", error);
+    return sendResponse(res, false, "Failed to reset password", 500);
+  }
+});

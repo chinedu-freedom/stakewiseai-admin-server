@@ -515,4 +515,48 @@ export async function sendWelcomeEmail(email, name) {
   });
 }
 
+export async function sendAdminPasswordResetEmail(email, name, newPassword) {
+  const subject = "Your Password Has Been Reset by Admin - SatrixAi";
 
+  const content = `
+    <div style="padding:30px 0; text-align:center;">
+      <p style="font-size:16px; color:#333; margin-bottom:16px;">
+        Hi <strong>${name}</strong>,
+      </p>
+
+      <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:20px;">
+        Your password has been reset by an administrator. Here are your new temporary login details:
+      </p>
+      
+      <div style="margin:24px 0; text-align:center;">
+        <span style="
+          background:#f3f4f6;
+          color:#1f2937;
+          padding:10px 32px;
+          font-size:18px;
+          font-weight:600;
+          letter-spacing:2px;
+          border-radius:8px;
+          border:1px solid #e5e7eb;
+          display:inline-block;
+        ">
+          ${newPassword}
+        </span>
+      </div>
+
+      <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:24px;">
+        We strongly recommend that you log in and change your password immediately.
+      </p>
+
+      <p style="font-size:13px; color:#888; margin-top:20px;">
+        If you did not request this, please contact support.
+      </p>
+    </div>
+  `;
+
+  return await sendEmail({
+    to: email,
+    subject,
+    html: emailTemplate(content),
+  });
+}
