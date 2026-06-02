@@ -164,21 +164,21 @@ export const updateUserController = asyncHandler(async (req, res) => {
         );
       }
 
-      if (accountBalance !== 0) {
-        const currentBalance = Number(currentUser.accountBalance || 0);
-        const newBalance = currentBalance + accountBalance;
+      // if (accountBalance !== 0) {
+      //   const currentBalance = Number(currentUser.accountBalance || 0);
+      //   const newBalance = currentBalance + accountBalance;
 
-        if (newBalance < 0) {
-          return sendResponse(
-            res,
-            false,
-            "Resulting balance cannot be less than 0",
-            400
-          );
-        }
+      //   if (newBalance < 0) {
+      //     return sendResponse(
+      //       res,
+      //       false,
+      //       "Resulting balance cannot be less than 0",
+      //       400
+      //     );
+      //   }
 
-        updateFields.accountBalance = newBalance;
-      }
+      //   updateFields.accountBalance = newBalance;
+      // }
     }
 
     // =========================
