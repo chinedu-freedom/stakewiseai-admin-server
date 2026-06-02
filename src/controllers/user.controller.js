@@ -96,7 +96,14 @@ export const getUserByIdController = asyncHandler(async (req, res) => {
 // PATCH — Admin update user
 export const updateUserController = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { accountStatus, accountBalance, totalProfit, emailVerified } = req.body;
+  const { 
+    accountStatus, 
+    accountBalance, 
+    balanceAction, 
+    totalProfit, 
+    profitAction, 
+    emailVerified 
+  } = req.body;
 
   if (!id) return sendResponse(res, false, "User ID is required", 400);
 
@@ -155,7 +162,7 @@ export const updateUserController = asyncHandler(async (req, res) => {
     }
 
     // =========================
-    // ACCOUNT BALANCE (ADJUSTMENT)
+    // ACCOUNT BALANCE
     // =========================
     if (typeof accountBalance !== "undefined") {
       if (typeof accountBalance !== "number" || isNaN(accountBalance)) {
@@ -167,25 +174,33 @@ export const updateUserController = asyncHandler(async (req, res) => {
         );
       }
 
-      // if (accountBalance !== 0) {
-      //   const currentBalance = Number(currentUser.accountBalance || 0);
-      //   const newBalance = currentBalance + accountBalance;
+      const currentBalance = Number(currentUser.accountBalance || 0);
+      let newBalance = currentBalance;
 
-      //   if (newBalance < 0) {
-      //     return sendResponse(
-      //       res,
-      //       false,
-      //       "Resulting balance cannot be less than 0",
-      //       400
-      //     );
-      //   }
+      if (balanceAction === "set") {
+        newBalance = accountBalance;
+      } else if (balanceAction === "subtract") {
+        newBalance = currentBalance - accountBalance;
+      } else {
+        // default to add
+        newBalance = currentBalance + accountBalance;
+      }
 
-      //   updateFields.accountBalance = newBalance;
-      // }
+      if (newBalance < 0) {
+        return sendResponse(
+          res,
+          false,
+          "Resulting balance cannot be less than 0",
+          400
+        );
+      }
+
+      updateFields.accountBalance = newBalance;
     }
 
     // =========================
-    // TOTAL PROFIT (ADJUSTMENT)
+    // =========================
+    // TOTAL PROFIT
     // =========================
     if (typeof totalProfit !== "undefined") {
       if (typeof totalProfit !== "number" || isNaN(totalProfit)) {
@@ -197,33 +212,42 @@ export const updateUserController = asyncHandler(async (req, res) => {
         );
       }
 
-      if (totalProfit !== 0) {
-        const currentProfit = Number(currentUser.totalProfit || 0);
-        const currentAvailable = Number(currentUser.availableProfit || 0);
-        
-        const newTotalProfit = currentProfit + totalProfit;
-        const newAvailableProfit = currentAvailable + totalProfit;
+      const currentProfit = Number(currentUser.totalProfit || 0);
+      const currentAvailable = Number(currentUser.availableProfit || 0);
+      
+      let newTotalProfit = currentProfit;
+      let newAvailableProfit = currentAvailable;
 
-        if (newTotalProfit < 0) {
-          return sendResponse(
-            res,
-            false,
-            "Resulting total profit cannot be less than 0",
-            400
-          );
-        }
-        if (newAvailableProfit < 0) {
-          return sendResponse(
-            res,
-            false,
-            "Resulting available profit cannot be less than 0",
-            400
-          );
-        }
-
-        updateFields.totalProfit = newTotalProfit;
-        updateFields.availableProfit = newAvailableProfit;
+      if (profitAction === "set") {
+        // If we set total profit, how does it affect available profit? 
+        // We probably just want to adjust both by the diff.
+        const diff = totalProfit - currentProfit;
+        newTotalProfit = totalProfit;
+        newAvailableProfit = currentAvailable + diff;
+      } else if (profitAction === "subtract") {
+        newTotalProfit = currentProfit - totalProfit;
+        newAvailableProfit = currentAvailable - totalProfit;
+      } else {
+        newTotalProfit = currentProfit + totalProfit;
+        newAvailableProfit = currentAvailable + totalProfit;
       }
+
+      if (newTotalProfit < 0) {
+        return sendResponse(
+          res,
+          false,
+          "Resulting total profit cannot be less than 0",
+          400
+        );
+      }
+      if (newAvailableProfit < 0) {
+        // Prevent available profit from going negative, but we still might want to allow total profit to be set
+        // Adjust it to 0 if it goes below 0 due to a set
+        newAvailableProfit = 0;
+      }
+
+      updateFields.totalProfit = newTotalProfit;
+      updateFields.availableProfit = newAvailableProfit;
     }
 
     // =========================
