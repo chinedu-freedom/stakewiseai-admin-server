@@ -362,8 +362,10 @@ export const impersonateUserController = asyncHandler(async (req, res) => {
 // POST — Admin reset user password
 export const resetUserPasswordController = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { newPassword } = req.body;
 
   if (!id) return sendResponse(res, false, "User ID is required", 400);
+  if (!newPassword) return sendResponse(res, false, "New password is required", 400);
 
   try {
     const user = await client.fetch(
@@ -373,8 +375,7 @@ export const resetUserPasswordController = asyncHandler(async (req, res) => {
 
     if (!user) return sendResponse(res, false, "User not found or is deleted", 404);
 
-    // Generate random 8-character password
-    const newPassword = crypto.randomBytes(4).toString("hex");
+    // Hash the manually provided password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
