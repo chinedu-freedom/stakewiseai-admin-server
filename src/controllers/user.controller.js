@@ -102,7 +102,8 @@ export const updateUserController = asyncHandler(async (req, res) => {
     balanceAction, 
     totalProfit, 
     profitAction, 
-    emailVerified 
+    emailVerified,
+    email
   } = req.body;
 
   if (!id) return sendResponse(res, false, "User ID is required", 400);
@@ -114,7 +115,8 @@ export const updateUserController = asyncHandler(async (req, res) => {
         accountBalance, 
         totalProfit,
         availableProfit,
-        emailVerified 
+        emailVerified,
+        email
       }`,
       { id }
     );
@@ -280,6 +282,23 @@ export const updateUserController = asyncHandler(async (req, res) => {
     // =========================
     // NO CHANGES CHECK
     // =========================
+    // We can also process Email here
+    // =========================
+    if (email && email.trim() !== "") {
+      const trimmedEmail = email.trim();
+      if (trimmedEmail !== currentUser.email) {
+        // Check if email already exists
+        const existingEmail = await client.fetch(
+          `*[_type == "user" && email == $email && _id != $id][0]`,
+          { email: trimmedEmail, id }
+        );
+        if (existingEmail) {
+          return sendResponse(res, false, "Email is already in use by another user", 400);
+        }
+        updateFields.email = trimmedEmail;
+      }
+    }
+
     if (Object.keys(updateFields).length === 0) {
       return sendResponse(
         res,
@@ -297,6 +316,7 @@ export const updateUserController = asyncHandler(async (req, res) => {
       accountBalance: updatedUser.accountBalance,
       accountStatus: updatedUser.accountStatus,
       emailVerified: updatedUser.emailVerified,
+      email: updatedUser.email,
       updatedAt: updatedUser.updatedAt,
     });
   } catch (error) {
