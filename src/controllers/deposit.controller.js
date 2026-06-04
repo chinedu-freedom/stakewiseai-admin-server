@@ -10,12 +10,14 @@ import {
 export const getDepositsController = asyncHandler(async (req, res) => {
   const { page, limit, start, end } = getPaginationParams(req);
   const search = req.query.search?.trim();
+  const status = req.query.status?.trim();
 
   const searchFilter = search ? ` && (_id match $search || crypto match $search || status match $search || user->username match $search || user->email match $search)` : "";
+  const statusFilter = status && status !== "all" ? ` && status == "${status}"` : "";
   const searchParam = search ? `${search}*` : "";
 
   const query = `
-    *[_type == "deposit" && status != "initiated"${searchFilter}]
+    *[_type == "deposit" && status != "initiated"${searchFilter}${statusFilter}]
     | order(createdAt desc)
     [$start...$end]{
       _id,
@@ -34,7 +36,7 @@ export const getDepositsController = asyncHandler(async (req, res) => {
 
   const [deposits, total] = await Promise.all([
     client.fetch(query, { start, end, search: searchParam }),
-    client.fetch(`count(*[_type == "deposit" && status != "initiated"${searchFilter}])`, { search: searchParam }),
+    client.fetch(`count(*[_type == "deposit" && status != "initiated"${searchFilter}${statusFilter}])`, { search: searchParam }),
   ]);
 
   const pagination = buildPaginationMeta(total, page, limit);
