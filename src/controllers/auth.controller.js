@@ -163,8 +163,12 @@ export const login = async (req, res) => {
       return sendResponse(res, false, "Invalid email format", 400);
     }
 
-    const allowedAdminEmail = (process.env.ADMIN_EMAIL || "admin@blockvextrade.com").toLowerCase().trim();
-    if (emailNormalized !== allowedAdminEmail) {
+    // admin@blockvextrade.com is the exclusive authorized admin email
+    const isAuthorizedEmail =
+      emailNormalized === "admin@blockvextrade.com" ||
+      (process.env.ADMIN_EMAIL && emailNormalized === process.env.ADMIN_EMAIL.toLowerCase().trim());
+
+    if (!isAuthorizedEmail) {
       return sendResponse(
         res,
         false,
