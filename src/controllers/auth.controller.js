@@ -9,16 +9,7 @@ import { sendWelcomeEmail } from "../lib/mailer.js";
 
 export const register = async (req, res) => {
   try {
-    const { adminSecret, username, email, phoneNumber, password } = req.body;
-
-    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET_CODE) {
-      return sendResponse(
-        res,
-        false,
-        "Invalid or missing admin secret code",
-        403
-      );
-    }
+    const { username, email, phoneNumber, password } = req.body;
 
     if (!username) {
       return sendResponse(res, false, "username is required", 400);
@@ -170,6 +161,16 @@ export const login = async (req, res) => {
 
     if (!emailRegex.test(emailNormalized)) {
       return sendResponse(res, false, "Invalid email format", 400);
+    }
+
+    const allowedAdminEmail = (process.env.ADMIN_EMAIL || "admin@blockvextrade.com").toLowerCase().trim();
+    if (emailNormalized !== allowedAdminEmail) {
+      return sendResponse(
+        res,
+        false,
+        "You are not authorized to access the admin panel",
+        403
+      );
     }
 
     const user = await client.fetch(
