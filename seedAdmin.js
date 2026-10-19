@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { client } from "./src/lib/sanity.js";
 
 async function seedAdmin() {
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@blockvextrade.com").toLowerCase().trim();
+  const adminEmail = "admin@blockvextrade.com";
   const adminUsername = "Admin";
   const defaultPassword = process.env.ADMIN_INITIAL_PASSWORD || "blockvextrade.com34$";
 

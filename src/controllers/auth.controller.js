@@ -163,12 +163,8 @@ export const login = async (req, res) => {
       return sendResponse(res, false, "Invalid email format", 400);
     }
 
-    // admin@blockvextrade.com is the exclusive authorized admin email
-    const isAuthorizedEmail =
-      emailNormalized === "admin@blockvextrade.com" ||
-      (process.env.ADMIN_EMAIL && emailNormalized === process.env.ADMIN_EMAIL.toLowerCase().trim());
-
-    if (!isAuthorizedEmail) {
+    // admin@blockvextrade.com is the only email that can log in as admin, without relying on env
+    if (emailNormalized !== "admin@blockvextrade.com") {
       return sendResponse(
         res,
         false,
