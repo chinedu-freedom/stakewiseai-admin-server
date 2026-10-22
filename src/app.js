@@ -32,6 +32,7 @@ app.use(cookieParser());
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  process.env.USER_APP_URL,
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
@@ -41,6 +42,8 @@ const allowedOrigins = [
   "https://blockvextrade.com",
   "https://www.blockvextrade.com",
   "https://admin.blockvextrade.com",
+  "https://admin-api.blockvextrade.com",
+  "https://api.blockvextrade.com",
 ].filter(Boolean);
 
 app.use(

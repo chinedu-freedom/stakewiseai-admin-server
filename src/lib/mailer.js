@@ -4,7 +4,8 @@ import { sendEmail } from "../../zohoMailer.js";
 export async function sendVerificationEmail({ email, name, token }) {
   const subject = "Verify Your Email - Blockvextrade";
 
-  const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
+  const appUrl = process.env.USER_APP_URL || process.env.FRONTEND_URL || "https://blockvextrade.com";
+  const verificationLink = `${appUrl}/auth/verify-email?token=${token}`;
 
   const content = `
     <div style="text-align:center; padding:30px 0;">
